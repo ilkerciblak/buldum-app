@@ -1,0 +1,37 @@
+services:
+  goutil:
+    container_name: goutil
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./application:/application:defer
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+      - adminer
+    tty: true
+    stdin_open: true
+  postgres:
+    container_name: buldum-postgres
+    image: postgres
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=admin
+  adminer:
+    container_name: buldum-adminer
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+volumes:
+  pgdata:
