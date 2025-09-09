@@ -1,6 +1,6 @@
 <div align ="center">
 
-  <img src="resources/buldum.png" alt="logo" width="300" height="auto"/>
+  <img src="readme_resources/buldum.png" alt="logo" width="300" height="auto"/>
   <h1><samp>Buldum App</samp></h1>
   <samp>
   
@@ -46,7 +46,7 @@
 </div>
 
 <div align="center" id="turkan-tugce-tufan">
-<img src="resources/IMG_6138.jpg" alt="turkan-tugce-tufan-photo" referrerpolicy="origin-when-cross-origin" width="200" height="auto" />
+<img src="readme_resources/IMG_6138.jpg" alt="turkan-tugce-tufan-photo" referrerpolicy="origin-when-cross-origin" width="200" height="auto" />
 <p>
 
 [Turkan Tugce Tufan](https://instagram.com/turkantugcetufan) | Consultant & Lovely Wife
@@ -56,7 +56,7 @@
 </div>
 
 <div align="center" id="luffy">
-<img src="resources/luffy.JPG" width="200" height="auto" alt="luffy-photo">
+<img src="readme_resources/luffy.JPG" width="200" height="auto" alt="luffy-photo">
 
 <p> Luffy | Consultant & Getting Lost Specialist
 </div>
