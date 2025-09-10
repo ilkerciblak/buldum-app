@@ -8,6 +8,6 @@ func main() {
 
 	apiserver := apiserver.NewApiServer()
 
-	apiserver.StartServer()
+	apiserver.ListenAndServeApiServer()
 
 }
