@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,16 +10,18 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	appconfig "github.com/ilkerciblak/buldum-app/shared/config"
+	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type ApiServer struct {
 	ServerAddr string
 }
 
-// Config vericem
-func NewApiServer() *ApiServer {
+func NewApiServer(cfg *appconfig.AppConfig) *ApiServer {
 	return &ApiServer{
-		ServerAddr: ":8080",
+		ServerAddr: fmt.Sprintf(":%v", cfg.PORT),
 	}
 }
 
@@ -78,7 +81,7 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 	go func() {
 		log.Printf("----------------------------------------------")
 		log.Printf("---------------Starting Buldum App HTTP Server---------------")
-		log.Printf("---------------Listening:                     ---------------")
+		log.Printf("---------------Listening: %v                  ---------------", a.ServerAddr)
 		log.Printf("----------------------------------------------")
 		errChan <- server.ListenAndServe()
 	}()
@@ -89,14 +92,28 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 
 func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 
-	mux.HandleFunc("GET /",
-		func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(200)
-			w.Header().Add("Content-Type", "application/json")
-			if _, err := w.Write([]byte(`{"message" : "IT IS ALIVE!}`)); err != nil {
-				panic(err)
-			}
-		})
+	mux.HandleFunc(
+		HealthCheckEndPoint{}.Path(),
+		presentation.GenerateHandlerFunc(HealthCheckEndPoint{}),
+	)
 
 	return nil
+}
+
+type HealthCheckEndPoint struct {
+}
+
+func (h HealthCheckEndPoint) Path() string {
+	return "GET /health"
+}
+
+func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, error) {
+
+	return map[string]string{
+		"message": "Ok",
+	}, nil
+}
+
+func Aanan() presentation.IEndPoint {
+	return HealthCheckEndPoint{}
 }
