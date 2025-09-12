@@ -1,6 +1,6 @@
 FROM golang:latest
 
-WORKDIR /application
+WORKDIR /backend
 
 RUN go install \
     golang.org/x/tools/gopls@latest && \

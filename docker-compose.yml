@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./application:/application:defer
+      - ./backend:/backend:defer
     ports:
       - "8001:8000"
     depends_on:

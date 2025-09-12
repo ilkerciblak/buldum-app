@@ -2,7 +2,7 @@
     "name": "Buldum Application Go-Backend Dev Container",
     "dockerComposeFile" : "../docker-compose.yml",
     "service": "goutil",
-    "workspaceFolder": "/application",
+    "workspaceFolder": "/backend",
     "remoteUser": "root",
     // "postCreateCommand": "go mod tidy",
     "customizations": {
