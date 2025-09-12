@@ -2,7 +2,7 @@ package main
 
 import (
 	apiserver "github.com/ilkerciblak/buldum-app/api/api_server"
-	appconfig "github.com/ilkerciblak/buldum-app/shared/config"
+	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 )
 
 func main() {
