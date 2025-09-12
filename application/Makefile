@@ -4,5 +4,5 @@ run: build
 	@./bin/buldum-app
 test:
 	@go test -v ./...
-test ssH:
+silent-Test:
 	@go test ./...
