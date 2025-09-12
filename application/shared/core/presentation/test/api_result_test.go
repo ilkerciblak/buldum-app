@@ -2,46 +2,46 @@ package test
 
 import (
 	"bytes"
-	"errors"
-	"io"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ilkerciblak/buldum-app/shared/core/domain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
-
-type mockEndpoint struct{}
-
-func (m *mockEndpoint) Path() string {
-	return "GET /test"
-}
-
-func (m *mockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, error) {
-	defer r.Body.Close()
-	if r.Body != nil {
-
-		return r.Body, nil
-	}
-
-	return nil, errors.New("Error")
-}
 
 func TestCorePresentation__RespondWithJSON(t *testing.T) {
 
 	cases := []struct {
-		Name             string
-		Input            *http.Request
-		ExpectedOutput   *http.Response
+		Name           string
+		Input          any
+		ExpectedOutput struct {
+			StatusCode int
+			Body       []byte
+		}
 		DoesExpectErrror bool
 	}{
 		{
 			Name:             "Status 200, with foo:bar key values",
 			DoesExpectErrror: false,
-			Input:            httptest.NewRequest("GET", "/test", bytes.NewReader([]byte(`{"foo":"bar"}`))),
-			ExpectedOutput: &http.Response{
+			Input:            1,
+			ExpectedOutput: struct {
+				StatusCode int
+				Body       []byte
+			}{
 				StatusCode: 200,
-				Body:       io.NopCloser(bytes.NewReader([]byte(`"1"`))),
+				Body:       []byte(`1`),
+			},
+		},
+		{
+			Name:             "Successfull operation with nil payload should give 200 StatusCode and no payload",
+			DoesExpectErrror: false,
+			Input:            nil,
+			ExpectedOutput: struct {
+				StatusCode int
+				Body       []byte
+			}{
+				StatusCode: 200,
+				Body:       nil,
 			},
 		},
 	}
@@ -52,15 +52,81 @@ func TestCorePresentation__RespondWithJSON(t *testing.T) {
 			func(t *testing.T) {
 				testReader := httptest.NewRecorder()
 
-				presentation.RespondWithJSON(testReader, 1)
+				presentation.RespondWithJSON(testReader, tc.Input)
 
 				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
 					t.Fatalf("Expected StatusCode %v, Output StatusCode %v", testReader.Result().StatusCode, tc.ExpectedOutput.StatusCode)
 				}
 
-				t.Logf("%v", testReader.Result().StatusCode)
-				t.Logf("%v", testReader.Result().Status)
+				if !bytes.Equal(testReader.Body.Bytes(), tc.ExpectedOutput.Body) {
+					t.Fatalf("Expected Body %v Got %v", tc.ExpectedOutput.Body, testReader.Body.Bytes())
 
+				}
+
+			},
+		)
+	}
+}
+
+func TestPresentation__RespondWithErrorJson(t *testing.T) {
+
+	validationexp := domain.ValidationException
+	validationexp.Errors = map[string]string{
+		"name": "name field is required",
+	}
+
+	cases := []struct {
+		Name            string
+		DoesExpectError bool
+		Input           domain.ApplicationException
+		ExpectedOutput  struct {
+			StatusCode int
+			Payload    []byte
+		}
+	}{
+		{
+			Name:            "Validation Error With Multiple Key:Value Pairs with StatusCode 422",
+			DoesExpectError: true,
+			Input:           validationexp,
+			ExpectedOutput: struct {
+				StatusCode int
+				Payload    []byte
+			}{
+				StatusCode: 422,
+				Payload:    []byte(`{"code":422,"title":"Unprocessable Entity","errors":{"name":"name field is required"}}`),
+			},
+		},
+		{
+			Name:            "Error with 401 and Unathorized Message || Or Any Code & Message Paired Exception",
+			DoesExpectError: false,
+			Input:           domain.UserNotAuthenticated,
+			ExpectedOutput: struct {
+				StatusCode int
+				Payload    []byte
+			}{
+				StatusCode: 401,
+				Payload:    []byte(`{"code":401,"title":"User Not Authenticated"}`),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(
+			tc.Name,
+			func(t *testing.T) {
+				testReader := httptest.NewRecorder()
+
+				presentation.RespondWithErrorJson(testReader, &tc.Input)
+
+				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
+
+					t.Fatalf("Expected StatusCode %v, Got %v", tc.ExpectedOutput.StatusCode, testReader.Result().StatusCode)
+				}
+
+				if !bytes.Equal(testReader.Body.Bytes(), tc.ExpectedOutput.Payload) {
+					t.Log(testReader.Body)
+					t.Fatalf("Expected Payload %v, Got %v", tc.ExpectedOutput.Payload, testReader.Body.Bytes())
+				}
 			},
 		)
 	}

@@ -11,7 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	appconfig "github.com/ilkerciblak/buldum-app/shared/config"
+	appconfig "github.com/ilkerciblak/buldum-app/api/config"
+	"github.com/ilkerciblak/buldum-app/shared/core/domain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
@@ -107,13 +108,7 @@ func (h HealthCheckEndPoint) Path() string {
 	return "GET /health"
 }
 
-func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, error) {
+func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationException) {
 
-	return map[string]string{
-		"message": "Ok",
-	}, nil
-}
-
-func Aanan() presentation.IEndPoint {
-	return HealthCheckEndPoint{}
+	return nil, &domain.MethodNotAllowed
 }
