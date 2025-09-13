@@ -68,9 +68,9 @@ func TestCorePresentation__RespondWithJSON(t *testing.T) {
 	}
 }
 
-func TestPresentation__RespondWithErrorJson(t *testing.T) {
+func TestCorePresentation__RespondWithErrorJson(t *testing.T) {
 
-	validationexp := domain.ValidationException
+	validationexp := domain.RequestValidationError
 	validationexp.Errors = map[string]string{
 		"name": "name field is required",
 	}
@@ -78,7 +78,7 @@ func TestPresentation__RespondWithErrorJson(t *testing.T) {
 	cases := []struct {
 		Name            string
 		DoesExpectError bool
-		Input           domain.ApplicationException
+		Input           domain.ApplicationError
 		ExpectedOutput  struct {
 			StatusCode int
 			Payload    []byte
@@ -121,6 +121,55 @@ func TestPresentation__RespondWithErrorJson(t *testing.T) {
 				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
 
 					t.Fatalf("Expected StatusCode %v, Got %v", tc.ExpectedOutput.StatusCode, testReader.Result().StatusCode)
+				}
+
+				if !bytes.Equal(testReader.Body.Bytes(), tc.ExpectedOutput.Payload) {
+					t.Log(testReader.Body)
+					t.Fatalf("Expected Payload %v, Got %v", tc.ExpectedOutput.Payload, testReader.Body.Bytes())
+				}
+			},
+		)
+	}
+}
+
+func TestCorePresentation__RespondWithProblemDetails(t *testing.T) {
+	cases := []struct {
+		Name            string
+		DoesExpectError bool
+		Input           domain.IApplicationError
+		ExpectedOutput  struct {
+			StatusCode int
+			Payload    []byte
+		}
+	}{
+		{
+			Name:            " Any Pre-defined ApplicationException Should Give Proper Problem Details",
+			DoesExpectError: false,
+			Input: &domain.ApplicationError{
+				Code:    418,
+				Title:   "418 I'm a teapod",
+				Message: "It's saying it's a teapod",
+			},
+			ExpectedOutput: struct {
+				StatusCode int
+				Payload    []byte
+			}{
+				StatusCode: 418,
+				Payload:    []byte(`{"type":"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/418","title":"418 I'm a teapod","status":418,"detail":"It's saying it's a teapod"}`),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(
+			tc.Name,
+			func(t *testing.T) {
+				testReader := httptest.NewRecorder()
+
+				presentation.RespondWithProblemDetails(testReader, tc.Input)
+
+				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
+					t.Fatalf("Excepted StatusCode %v, Got %v", tc.ExpectedOutput.StatusCode, testReader.Result().StatusCode)
 				}
 
 				if !bytes.Equal(testReader.Body.Bytes(), tc.ExpectedOutput.Payload) {

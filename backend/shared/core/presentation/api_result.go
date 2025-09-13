@@ -20,10 +20,10 @@ type ProblemDetails struct {
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
-func ToProblemDetails(e domain.IApplicationException) ProblemDetails {
+func ToProblemDetails(e domain.IApplicationError) ProblemDetails {
 
 	return ProblemDetails{
-		Type:   fmt.Sprintf("https://httpstatuses.com/%v", e.GetCode()),
+		Type:   fmt.Sprintf("https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/%v", e.GetCode()),
 		Title:  e.GetTitle(),
 		Status: e.GetCode(),
 		Detail: e.GetMessage(),

@@ -10,7 +10,7 @@ import (
 
 type IEndPoint interface {
 	Path() string
-	HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationException)
+	HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError)
 }
 
 func GenerateHandlerFunc(e IEndPoint) http.HandlerFunc {
@@ -48,7 +48,7 @@ func RespondWithJSON(w http.ResponseWriter, payload any) {
 
 }
 
-func RespondWithErrorJson(w http.ResponseWriter, appError domain.IApplicationException) {
+func RespondWithErrorJson(w http.ResponseWriter, appError domain.IApplicationError) {
 	w.Header().Set("content-type", "application/problem")
 	// TODO: LOGGING
 	// TODO: ApiProblem to ProblemDetails
@@ -65,7 +65,7 @@ func RespondWithErrorJson(w http.ResponseWriter, appError domain.IApplicationExc
 
 }
 
-func RespondWithProblemDetails(w http.ResponseWriter, appError domain.IApplicationException) {
+func RespondWithProblemDetails(w http.ResponseWriter, appError domain.IApplicationError) {
 	w.Header().Set("Content-Type", "application/problem+json")
 
 	problemDetails := ToProblemDetails(appError)
