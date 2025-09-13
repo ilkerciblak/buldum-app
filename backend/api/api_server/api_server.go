@@ -108,7 +108,7 @@ func (h HealthCheckEndPoint) Path() string {
 	return "GET /health"
 }
 
-func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationException) {
+func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError) {
 
 	return nil, &domain.MethodNotAllowed
 }
