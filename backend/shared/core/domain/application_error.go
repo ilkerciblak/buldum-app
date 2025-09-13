@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-type IApplicationException interface {
+type IApplicationError interface {
 	GetTitle() string
 	GetCode() int
 	GetErrors() map[string]string
 	GetMessage() string
 }
 
-type ApplicationException struct {
+type ApplicationError struct {
 	// Title
 	Code    int               `json:"code"`
 	Title   string            `json:"title,omitempty"`
@@ -20,15 +20,15 @@ type ApplicationException struct {
 	Errors  map[string]string `json:"errors,omitempty"`
 }
 
-func (a *ApplicationException) GetTitle() string {
+func (a *ApplicationError) GetTitle() string {
 	return a.Title
 }
 
-func (a *ApplicationException) GetCode() int {
+func (a *ApplicationError) GetCode() int {
 	return a.Code
 }
 
-func (a *ApplicationException) GetErrors() map[string]string {
+func (a *ApplicationError) GetErrors() map[string]string {
 
 	if a.Errors != nil {
 		return a.Errors
@@ -36,39 +36,39 @@ func (a *ApplicationException) GetErrors() map[string]string {
 	return nil
 }
 
-func (a *ApplicationException) GetMessage() string {
+func (a *ApplicationError) GetMessage() string {
 	if len(a.Message) > 0 {
 		return a.Message
 	}
 	return a.Title
 }
 
-func (a ApplicationException) Error() string {
+func (a ApplicationError) Error() string {
 	return fmt.Sprintf("%v (%v)", a.Title, a.Code)
 }
 
 var (
-	InternalServerError ApplicationException = ApplicationException{
+	InternalServerError ApplicationError = ApplicationError{
 		Title: "Internal Server Error",
 		Code:  http.StatusInternalServerError,
 	}
 
-	MethodNotAllowed ApplicationException = ApplicationException{
+	MethodNotAllowed ApplicationError = ApplicationError{
 		Title: "Method Not Allowed",
 		Code:  http.StatusMethodNotAllowed,
 	}
 
-	UserNotAuthenticated ApplicationException = ApplicationException{
+	UserNotAuthenticated ApplicationError = ApplicationError{
 		Title: "User Not Authenticated",
 		Code:  http.StatusUnauthorized,
 	}
 
-	UserForbidden ApplicationException = ApplicationException{
+	UserForbidden ApplicationError = ApplicationError{
 		Title: "Authorization Error",
 		Code:  http.StatusForbidden,
 	}
 
-	ValidationException ApplicationException = ApplicationException{
+	RequestValidationError ApplicationError = ApplicationError{
 		Title: "Unprocessable Entity",
 		Code:  http.StatusUnprocessableEntity,
 	}
