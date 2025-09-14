@@ -3,22 +3,28 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type IMiddleware interface {
-	Act(*http.HandlerFunc) domain.IApplicationError
+	Act(handlerFunc http.HandlerFunc) http.HandlerFunc
 }
 
-func ChainMiddlewares(handlerFunc http.HandlerFunc, middlewares ...IMiddleware) http.HandlerFunc {
+// presentation.GenerateHandlerFunc()
+func ChainMiddlewaresWithEndpoint(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+	// handlerFunc := presentation.GenerateHandlerFuncFromEndPoint(endPoint)
+	handlerFunc := PanicRecoverMiddleware{}.Act(ErrorHandlerMiddleware{}.Act(endPoint))
+	// var handlerFunc http.HandlerFunc = end
 	for _, middleware := range middlewares {
-		_ = middleware.Act(&handlerFunc)
-
+		handlerFunc = middleware.Act(handlerFunc)
 	}
 
-	return handlerFunc
+	return handlerFunc.ServeHTTP
 }
 
-func a() {
-	ChainMiddlewares(func(w http.ResponseWriter, r *http.Request) {})
-}
+// func CreateMiddlewareChain(middlewares ...IMiddleware) http.HandlerFunc {
+// 	var handler http.HandlerFunc
+// 	for i:=0; i<len(middlewares)-1; i++ {
+// 		handler = middlewares[i].Act()
+// 	}
+// }

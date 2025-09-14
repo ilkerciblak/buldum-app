@@ -1,4 +1,4 @@
-package test
+package presentation_test
 
 import (
 	"bytes"

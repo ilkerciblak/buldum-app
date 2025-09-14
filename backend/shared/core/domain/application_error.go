@@ -74,8 +74,9 @@ var (
 	}
 )
 
-// func (a *ApplicationException) WithMessage(err error) *ApplicationException {
-// 	return a
-// }
+func (a ApplicationError) WithMessage(err error) *ApplicationError {
+	a.Message = err.Error()
+	return &a
+}
 
 // TODO: Message ve Error eklemek icin bir method gerekebilir

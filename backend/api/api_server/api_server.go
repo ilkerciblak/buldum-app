@@ -12,8 +12,8 @@ import (
 	"time"
 
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
+	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/domain"
-	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type ApiServer struct {
@@ -70,7 +70,9 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 
 	mux := http.NewServeMux()
 
-	a.registerHandlers(mux)
+	if err := a.registerHandlers(mux); err != nil {
+		panic(err)
+	}
 
 	server := http.Server{
 		Addr:    a.ServerAddr,
@@ -95,7 +97,7 @@ func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 
 	mux.HandleFunc(
 		HealthCheckEndPoint{}.Path(),
-		presentation.GenerateHandlerFunc(HealthCheckEndPoint{}),
+		middleware.ChainMiddlewaresWithEndpoint(&HealthCheckEndPoint{}, &middleware.LoggingMiddleware{}),
 	)
 
 	return nil
@@ -109,6 +111,6 @@ func (h HealthCheckEndPoint) Path() string {
 }
 
 func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError) {
-
-	return nil, &domain.MethodNotAllowed
+	panic("PanicRecoverDemo")
+	return 1, nil
 }
