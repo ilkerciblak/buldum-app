@@ -3,7 +3,7 @@ package presentation
 import (
 	"fmt"
 
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 // API success durumunda da bir status donebilir ama simdilik bosverelim
@@ -27,7 +27,7 @@ type ProblemDetails struct {
 	Errors map[string]string `json:"errors,omitempty"`
 }
 
-func ToProblemDetails(e domain.IApplicationError) ProblemDetails {
+func ToProblemDetails(e coredomain.IApplicationError) ProblemDetails {
 	return ProblemDetails{
 		Type:   fmt.Sprintf("https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/%v", e.GetCode()),
 		Title:  e.GetTitle(),

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
@@ -70,7 +70,7 @@ func TestCorePresentation__RespondWithJSON(t *testing.T) {
 
 func TestCorePresentation__RespondWithErrorJson(t *testing.T) {
 
-	validationexp := domain.RequestValidationError
+	validationexp := coredomain.RequestValidationError
 	validationexp.Errors = map[string]string{
 		"name": "name field is required",
 	}
@@ -78,7 +78,7 @@ func TestCorePresentation__RespondWithErrorJson(t *testing.T) {
 	cases := []struct {
 		Name            string
 		DoesExpectError bool
-		Input           domain.ApplicationError
+		Input           coredomain.ApplicationError
 		ExpectedOutput  struct {
 			StatusCode int
 			Payload    []byte
@@ -99,7 +99,7 @@ func TestCorePresentation__RespondWithErrorJson(t *testing.T) {
 		{
 			Name:            "Error with 401 and Unathorized Message || Or Any Code & Message Paired Exception",
 			DoesExpectError: false,
-			Input:           domain.UserNotAuthenticated,
+			Input:           coredomain.UserNotAuthenticated,
 			ExpectedOutput: struct {
 				StatusCode int
 				Payload    []byte
@@ -136,7 +136,7 @@ func TestCorePresentation__RespondWithProblemDetails(t *testing.T) {
 	cases := []struct {
 		Name            string
 		DoesExpectError bool
-		Input           domain.IApplicationError
+		Input           coredomain.IApplicationError
 		ExpectedOutput  struct {
 			StatusCode int
 			Payload    []byte
@@ -145,7 +145,7 @@ func TestCorePresentation__RespondWithProblemDetails(t *testing.T) {
 		{
 			Name:            " Any Pre-defined ApplicationException Should Give Proper Problem Details",
 			DoesExpectError: false,
-			Input: &domain.ApplicationError{
+			Input: &coredomain.ApplicationError{
 				Code:    418,
 				Title:   "418 I'm a teapod",
 				Message: "It's saying it's a teapod",
