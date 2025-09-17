@@ -1,5 +1,5 @@
 build:
-	@go build -C api/ -o ../bin/buldum-app
+	@go build -C cmd/ -o ../bin/buldum-app
 run: build
 	@./bin/buldum-app
 test:
