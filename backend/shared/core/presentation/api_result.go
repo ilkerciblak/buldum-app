@@ -8,8 +8,15 @@ import (
 
 // API success durumunda da bir status donebilir ama simdilik bosverelim
 type ApiResult[T any] struct {
-	Data           T
-	ProblemDetails ProblemDetails
+	Data       T
+	StatusCode int
+}
+
+func NewApiResult[T any](data T, statusCode int) ApiResult[T] {
+	return ApiResult[T]{
+		Data:       data,
+		StatusCode: statusCode,
+	}
 }
 
 type ProblemDetails struct {
@@ -21,7 +28,6 @@ type ProblemDetails struct {
 }
 
 func ToProblemDetails(e domain.IApplicationError) ProblemDetails {
-
 	return ProblemDetails{
 		Type:   fmt.Sprintf("https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/%v", e.GetCode()),
 		Title:  e.GetTitle(),

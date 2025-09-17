@@ -21,7 +21,8 @@ func (p PanicRecoverMiddleware) Act(next http.HandlerFunc) http.HandlerFunc {
 				presentation.RespondWithProblemDetails(w, &domain.InternalServerError)
 			}
 		}()
-
+		log.Printf("PanicRecoverMiddleware Before ServeHTTP")
 		next.ServeHTTP(w, r)
+		log.Printf("PanicRecoverMiddleware After ServeHTTP")
 	}
 }

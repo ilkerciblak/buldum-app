@@ -8,19 +8,22 @@ import (
 
 type IEndPoint interface {
 	Path() string
-	HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError)
+	HandleRequest(w http.ResponseWriter, r *http.Request) (ApiResult[any], domain.IApplicationError)
 }
 
-func GenerateHandlerFuncFromEndPoint(e IEndPoint) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		data, err := e.HandleRequest(w, r)
-		if err != nil {
+// func GenerateHandlerFuncFromEndPoint(e IEndPoint) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		data, err := e.HandleRequest(w, r)
+// 		if err != nil {
 
-			RespondWithProblemDetails(w, err)
-			return
-		}
-		RespondWithJSON(w, data)
+// 			RespondWithProblemDetails(w, err)
+// 			return
+// 		}
 
-		// TODO RESPONDWITHJSON ETC
-	}
-}
+// 		if data.Data != nil {
+// 			RespondWithJSON(w, data)
+// 		}
+
+// 		// TODO RESPONDWITHJSON ETC
+// 	}
+// }

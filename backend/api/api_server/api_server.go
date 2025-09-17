@@ -14,6 +14,7 @@ import (
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type ApiServer struct {
@@ -95,9 +96,15 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 
 func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 
+	// mux.HandleFunc(
+	// 	HealthCheckEndPoint{}.Path(),
+	// 	middleware.ChainMiddlewaresWithEndpoint(&HealthCheckEndPoint{}, &middleware.LoggingMiddleware{}),
+	// )
+	panicChain := middleware.CreateMiddlewareChain(&middleware.PanicRecoverMiddleware{})
+
 	mux.HandleFunc(
 		HealthCheckEndPoint{}.Path(),
-		middleware.ChainMiddlewaresWithEndpoint(&HealthCheckEndPoint{}, &middleware.LoggingMiddleware{}),
+		panicChain(HealthCheckEndPoint{}, middleware.LoggingMiddleware{}),
 	)
 
 	return nil
@@ -110,7 +117,7 @@ func (h HealthCheckEndPoint) Path() string {
 	return "GET /health"
 }
 
-func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError) {
-	panic("PanicRecoverDemo")
-	return 1, nil
+func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], domain.IApplicationError) {
+	// panic("PanicRecoverDemo")
+	return presentation.ApiResult[any]{Data: nil}, nil
 }

@@ -13,18 +13,35 @@ type IMiddleware interface {
 // presentation.GenerateHandlerFunc()
 func ChainMiddlewaresWithEndpoint(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
 	// handlerFunc := presentation.GenerateHandlerFuncFromEndPoint(endPoint)
-	handlerFunc := PanicRecoverMiddleware{}.Act(ErrorHandlerMiddleware{}.Act(endPoint))
+	handlerFunc := PanicRecoverMiddleware{}.Act(JsonResponseHandlerMiddleware{}.Act(endPoint))
 	// var handlerFunc http.HandlerFunc = end
 	for _, middleware := range middlewares {
 		handlerFunc = middleware.Act(handlerFunc)
 	}
-
-	return handlerFunc.ServeHTTP
+	return handlerFunc
 }
 
-// func CreateMiddlewareChain(middlewares ...IMiddleware) http.HandlerFunc {
-// 	var handler http.HandlerFunc
-// 	for i:=0; i<len(middlewares)-1; i++ {
-// 		handler = middlewares[i].Act()
-// 	}
-// }
+// CreateMiddlewareChain function that accepts optional list of middlewares implements IMiddleware interface and creates
+// pre-defined middleware chains with returning
+//
+//	func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc
+//
+// Example Usage:
+//
+//	//Creating Authenticated Middleware Chain with Logging Middleware
+//	authenticatedChain := CreateMiddlewareChain(&AuthenticationMiddleware{}, &LoggingMiddleware{});
+//
+//	//Let mux handle this path with another middlewares
+//	mux.Handle(&ExampleEndPoint{}.Path(), authenticatedChain(&ExampleEndPoint{}, &AnotherMiddleware{}, &Another2Middleware{}))
+//
+// -	In Default behavior, CreateMiddlewareChain handles http responses with JsonResponseHandlerMiddleware{}
+func CreateMiddlewareChain(chainMiddlewares ...IMiddleware) func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+	return func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+		chainMiddlewares = append(chainMiddlewares, middlewares...)
+		handlerFunc := JsonResponseHandlerMiddleware{}.Act(endPoint)
+		for _, middleware := range chainMiddlewares {
+			handlerFunc = middleware.Act(handlerFunc)
+		}
+		return handlerFunc
+	}
+}

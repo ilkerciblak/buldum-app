@@ -12,6 +12,7 @@ import (
 
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
@@ -69,9 +70,11 @@ func (m *MockAuthMiddleware) Act(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+type Panic struct{}
+
 type MockEndpoint struct{}
 
-func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any, domain.IApplicationError) {
+func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], domain.IApplicationError) {
 	type request struct {
 		Message string `json:"message"`
 	}
@@ -80,18 +83,26 @@ func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (any
 	if err != nil {
 		rerr := &domain.InternalServerError
 		rerr.Message = err.Error()
-		return nil, rerr
+		return presentation.ApiResult[any]{}, rerr
 	}
 
 	if strings.Contains(req.Message, "error") {
-		return nil, &domain.MethodNotAllowed
+		return presentation.ApiResult[any]{}, &domain.MethodNotAllowed
+	}
+
+	if strings.EqualFold(req.Message, "panic") {
+		if a, b := w.(*TestTypeResponseRecorder); b {
+
+			a.WithContext(context.WithValue(r.Context(), &Panic{}, true))
+		}
+		panic("Test Panic")
 	}
 
 	if a, b := w.(*TestTypeResponseRecorder); b {
 		a.WithContext(r.Context())
 	}
 
-	return req, nil
+	return presentation.ApiResult[any]{Data: req}, nil
 }
 
 func (m MockEndpoint) Path() string {
@@ -129,6 +140,7 @@ func TestApiMiddleware__ChainMiddleware(t *testing.T) {
 					ResponseWriter: testReader,
 					Ctx:            ctx,
 				}
+
 				middleware.ChainMiddlewaresWithEndpoint(MockEndpoint{}, tc.Input...).ServeHTTP(&testTypeRecorder, testRequest)
 
 				if reflect.DeepEqual(testTypeRecorder.Ctx, tc.ExpectedOutput[i]) {
@@ -137,6 +149,46 @@ func TestApiMiddleware__ChainMiddleware(t *testing.T) {
 
 			},
 		)
+	}
+
+}
+
+func TestApiMiddleware__CreatingMiddlewareChains(t *testing.T) {
+
+	testReader := httptest.NewRecorder()
+	testRequest := httptest.NewRequest("POST", "/mockito", bytes.NewReader([]byte(`{"message":"Yikess"}`)))
+
+	testTypeRecorder := TestTypeResponseRecorder{
+		ResponseWriter: testReader,
+		Ctx:            ctx,
+	}
+
+	authedChain := middleware.CreateMiddlewareChain(&MockAuthMiddleware{})
+	authedChain(MockEndpoint{}, &MockLoggingMiddleware{Name: "mockito"}).ServeHTTP(&testTypeRecorder, testRequest)
+
+	if reflect.DeepEqual(testTypeRecorder.Ctx, context.WithValue(context.WithValue(ctx, &Logger{}, &MockLoggingMiddleware{Name: "mockito"}), &Author{}, &MockAuthMiddleware{})) {
+		t.Fatalf("Expected Context is Not Satisfied")
+	}
+}
+
+func TestApiMiddleware__PanicRecoverMiddleware(t *testing.T) {
+	testReader := httptest.NewRecorder()
+	testRequest := httptest.NewRequest("GET", "/mockito", bytes.NewReader([]byte(`{"message":"panic"}`)))
+	testResponseRecorder := TestTypeResponseRecorder{
+		ResponseWriter: testReader,
+		Ctx:            ctx,
+	}
+
+	middleware.PanicRecoverMiddleware{}.Act(func(w http.ResponseWriter, r *http.Request) {
+		MockEndpoint{}.HandleRequest(w, r)
+	}).ServeHTTP(&testResponseRecorder, testRequest)
+
+	if x, exists := testResponseRecorder.Ctx.Value(&Panic{}).(bool); exists {
+		if !x {
+			t.Fatalf("PanicRecoverMiddleware not works as expected")
+		}
+	} else {
+		t.Fatalf("PanicRecoverMiddleware not works as expected, there is no value as `panic` in context")
 	}
 
 }
