@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/ilkerciblak/buldum-app/api/middleware"
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
@@ -74,20 +74,20 @@ type Panic struct{}
 
 type MockEndpoint struct{}
 
-func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], domain.IApplicationError) {
+func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], coredomain.IApplicationError) {
 	type request struct {
 		Message string `json:"message"`
 	}
 	var req request
 	req, err := jsonmapper.DecodeRequestBody[request](r)
 	if err != nil {
-		rerr := &domain.InternalServerError
+		rerr := &coredomain.InternalServerError
 		rerr.Message = err.Error()
 		return presentation.ApiResult[any]{}, rerr
 	}
 
 	if strings.Contains(req.Message, "error") {
-		return presentation.ApiResult[any]{}, &domain.MethodNotAllowed
+		return presentation.ApiResult[any]{}, &coredomain.MethodNotAllowed
 	}
 
 	if strings.EqualFold(req.Message, "panic") {

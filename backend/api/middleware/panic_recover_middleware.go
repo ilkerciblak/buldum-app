@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
@@ -18,7 +18,7 @@ func (p PanicRecoverMiddleware) Act(next http.HandlerFunc) http.HandlerFunc {
 			if err := recover(); err != nil {
 				log.Printf("Panic Recovered From %v", err)
 
-				presentation.RespondWithProblemDetails(w, &domain.InternalServerError)
+				presentation.RespondWithProblemDetails(w, &coredomain.InternalServerError)
 			}
 		}()
 		log.Printf("PanicRecoverMiddleware Before ServeHTTP")
