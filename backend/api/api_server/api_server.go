@@ -13,7 +13,8 @@ import (
 
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 	"github.com/ilkerciblak/buldum-app/api/middleware"
-	"github.com/ilkerciblak/buldum-app/shared/core/domain"
+	"github.com/ilkerciblak/buldum-app/service/account"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
@@ -107,6 +108,8 @@ func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 		panicChain(HealthCheckEndPoint{}, middleware.LoggingMiddleware{}),
 	)
 
+	account.RegisterAccountDomainEndPoints(mux)
+
 	return nil
 }
 
@@ -117,7 +120,7 @@ func (h HealthCheckEndPoint) Path() string {
 	return "GET /health"
 }
 
-func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], domain.IApplicationError) {
+func (h HealthCheckEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (presentation.ApiResult[any], coredomain.IApplicationError) {
 	// panic("PanicRecoverDemo")
-	return presentation.ApiResult[any]{Data: nil}, nil
+	return presentation.ApiResult[any]{Data: nil, StatusCode: 200}, nil
 }
