@@ -3,15 +3,16 @@ package presentation
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
-type CreateAccountEndPoint struct{}
+type CreateAccountEndPoint struct {
+	Repository repository.AccountRepository
+}
 
 func (c CreateAccountEndPoint) Path() string {
 	return "/account"
@@ -24,7 +25,7 @@ func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 		return corepresentation.ApiResult[any]{}, coredomain.InternalServerError.WithMessage(err.Error())
 	}
 
-	if err := com.Handler(&MockAccountRepository{}, r.Context()); err != nil {
+	if err := com.Handler(c.Repository, r.Context()); err != nil {
 		return corepresentation.ApiResult[any]{}, err
 	}
 
@@ -33,23 +34,4 @@ func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 		StatusCode: http.StatusCreated,
 	}, nil
 
-}
-
-type MockAccountRepository struct {
-}
-
-func (m MockAccountRepository) GetById(userId uuid.UUID) (*model.Profile, error) {
-	return model.NewProfile("ilkerciblak", "url"), nil
-}
-func (m MockAccountRepository) GetAll() ([]*model.Profile, error) {
-	return []*model.Profile{}, nil
-}
-func (m MockAccountRepository) Create(p *model.Profile) error {
-	return nil
-}
-func (m MockAccountRepository) Update(userId uuid.UUID, p *model.Profile) error {
-	return nil
-}
-func (m MockAccountRepository) Delete(userId uuid.UUID) error {
-	return nil
 }

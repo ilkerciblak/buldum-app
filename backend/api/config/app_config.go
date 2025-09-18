@@ -7,7 +7,7 @@ type AppConfig struct {
 }
 
 func NewAppConfig() (*AppConfig, error) {
-	port := envreader.GetStringOrDefault("PORT", "8000")
+	port := envreader.GetStringOrDefault("APP_PORT", "8000")
 
 	return &AppConfig{
 			PORT: port,

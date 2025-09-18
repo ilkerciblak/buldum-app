@@ -12,22 +12,22 @@ import (
 type MockAccountRepository struct {
 }
 
-func (m MockAccountRepository) GetById(userId uuid.UUID) (*model.Profile, error) {
+func (m MockAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*model.Profile, error) {
 	return model.NewProfile("ilkerciblak", "url"), nil
 }
-func (m MockAccountRepository) GetAll() ([]*model.Profile, error) {
+func (m MockAccountRepository) GetAll(ctx context.Context) ([]*model.Profile, error) {
 	return []*model.Profile{
 		model.NewProfile("ilkerciblak", "url"),
 		model.NewProfile("ilkerciblak", "url"),
 	}, nil
 }
-func (m MockAccountRepository) Create(p *model.Profile) error {
+func (m MockAccountRepository) Create(ctx context.Context, p *model.Profile) error {
 	return nil
 }
-func (m MockAccountRepository) Update(userId uuid.UUID, p *model.Profile) error {
+func (m MockAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error {
 	return nil
 }
-func (m MockAccountRepository) Delete(userId uuid.UUID) error {
+func (m MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) error {
 	return nil
 }
 

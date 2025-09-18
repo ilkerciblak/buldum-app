@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "service/account/internal/infrastructure/sql/migrations"
+    queries: "service/account/internal/infrastructure/sql/queries"
+    gen:
+      go:
+        package: "account_db"
+        out: "service/account/internal/infrastructure/sql"

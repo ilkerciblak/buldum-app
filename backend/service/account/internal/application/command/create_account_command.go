@@ -34,9 +34,9 @@ func (c *CreateAccountCommand) Handler(r repository.AccountRepository, ctx conte
 		return err
 	}
 
-	account := model.NewProfile(c.Username, c.AvatarUrl, model.AllowAll)
+	account := model.NewProfile(c.Username, c.AvatarUrl)
 
-	if err := r.Create(account); err != nil {
+	if err := r.Create(ctx, account); err != nil {
 		return coredomain.MethodNotAllowed.WithMessage(err.Error())
 	}
 

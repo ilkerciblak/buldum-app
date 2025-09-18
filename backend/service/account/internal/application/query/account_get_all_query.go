@@ -11,7 +11,7 @@ import (
 type AccountGetAllQuery struct{}
 
 func (a AccountGetAllQuery) Handler(r repository.AccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {
-	data, err := r.GetAll()
+	data, err := r.GetAll(ctx)
 
 	if err != nil {
 		return nil, coredomain.BadRequest.WithMessage(err.Error())
