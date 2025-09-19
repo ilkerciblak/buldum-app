@@ -8,3 +8,7 @@ silent-Test:
 	@go test ./...
 test-service:
 	@go test ${options} ./service/${service}/internal/${thing}
+goose-up-service:
+	@goose -dir ./service/${service}/internal/infrastructure/sql/migrations/. up
+goose-down-service:
+	@goose -dir ./service/${service}/internal/infrastructure/sql/migrations/. down
