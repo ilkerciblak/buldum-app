@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,15 +17,27 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	_ "github.com/lib/pq"
 )
 
 type ApiServer struct {
 	ServerAddr string
+	DB         struct {
+		DriverName       string
+		ConnectionString string
+	}
 }
 
 func NewApiServer(cfg *appconfig.AppConfig) *ApiServer {
 	return &ApiServer{
 		ServerAddr: fmt.Sprintf(":%v", cfg.PORT),
+		DB: struct {
+			DriverName       string
+			ConnectionString string
+		}{
+			DriverName:       cfg.DB_DRIVER,
+			ConnectionString: cfg.DB_URL,
+		},
 	}
 }
 
@@ -69,6 +82,7 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 
 	wg.Add(1)
 	defer wg.Done() // samme with wg.Add(-1)
+	errChan := make(chan error, 1)
 
 	mux := http.NewServeMux()
 
@@ -76,22 +90,42 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 		panic(err)
 	}
 
+	conn, err := a.InitializeSQLDBConnection()
+	if err != nil {
+		errChan <- err
+	}
+
+	a.registerDomains(mux, conn)
+
 	server := http.Server{
 		Addr:    a.ServerAddr,
 		Handler: mux,
 	}
-
-	errChan := make(chan error, 1)
 
 	go func() {
 		log.Printf("----------------------------------------------")
 		log.Printf("---------------Starting Buldum App HTTP Server---------------")
 		log.Printf("---------------Listening: %v                  ---------------", a.ServerAddr)
 		log.Printf("----------------------------------------------")
+		defer conn.Close()
 		errChan <- server.ListenAndServe()
 	}()
 
 	return &server, errChan
+
+}
+
+func (a *ApiServer) InitializeSQLDBConnection() (*sql.DB, error) {
+	db, err := sql.Open(a.DB.DriverName, a.DB.ConnectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 
 }
 
@@ -108,9 +142,14 @@ func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 		panicChain(HealthCheckEndPoint{}, middleware.LoggingMiddleware{}),
 	)
 
-	account.RegisterAccountDomainEndPoints(mux)
+	// account.RegisterAccountDomain(mux)
 
 	return nil
+}
+
+func (a *ApiServer) registerDomains(mux *http.ServeMux, db *sql.DB) {
+	account.RegisterAccountDomain(mux, db)
+
 }
 
 type HealthCheckEndPoint struct {
