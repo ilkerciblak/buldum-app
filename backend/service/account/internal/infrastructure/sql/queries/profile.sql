@@ -8,17 +8,28 @@ VALUES (
     $5
 );
 
+-- name: GetProfileById :one
+SELECT * FROM account.profile
+WHERE id=$1;
 
 
--- CREATE TABLE IF NOT EXISTS account.profile(
---     id UUID PRIMARY KEY,
---     user_id UUID NOT NULL,
---     user_name VARCHAR(255) NOT NULL UNIQUE,
---     avatar_url TEXT,
---     created_at TIMESTAMPTZ NOT NULL,
---     updated_at TIMESTAMPTZ,
---     deleted_at TIMESTAMPTZ,
---     is_archived BOOLEAN
--- );
--- -- +goose StatementEnd
+-- name: GetAllProfile :many
+SELECT * FROM account.profile;
+
+-- name: ArchiveProfile :exec
+UPDATE account.profile
+SET is_archived=true
+WHERE id=$1;
+
+-- name: DeleteProfile :exec
+DELETE FROM account.profile
+WHERE id=$1;
+
+-- name: UpdateProfile :exec
+UPDATE account.profile
+SET 
+    user_name=$1,
+    avatar_url=$2,
+    updated_at=$3
+WHERE id=$4;
 

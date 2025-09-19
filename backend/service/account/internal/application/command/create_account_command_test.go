@@ -29,6 +29,9 @@ func (m MockAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *
 func (m MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) error {
 	return nil
 }
+func (m MockAccountRepository) Archive(ctx context.Context, userId uuid.UUID) error {
+	return nil
+}
 
 func Test__CreateAccountCommand_Validation(t *testing.T) {
 	cases := []struct {

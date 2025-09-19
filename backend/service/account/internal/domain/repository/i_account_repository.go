@@ -13,4 +13,5 @@ type AccountRepository interface {
 	Create(ctx context.Context, p *model.Profile) error
 	Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error
 	Delete(ctx context.Context, userId uuid.UUID) error
+	Archive(ctx context.Context, userId uuid.UUID) error
 }

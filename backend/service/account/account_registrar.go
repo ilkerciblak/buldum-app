@@ -5,15 +5,15 @@ import (
 	"net/http"
 
 	"github.com/ilkerciblak/buldum-app/api/middleware"
+	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
-	infrastructure "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql_repository"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
+	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
 )
 
 func RegisterAccountDomain(mux *http.ServeMux, db *sql.DB) {
 	accountQueries := account_db.New(db)
 
-	accountRepository := infrastructure.NewSqlAccountRepository(*accountQueries)
+	accountRepository := repo.NewSqlAccountRepository(*accountQueries)
 
 	createAccountEndPoint := presentation.CreateAccountEndPoint{
 		Repository: accountRepository,

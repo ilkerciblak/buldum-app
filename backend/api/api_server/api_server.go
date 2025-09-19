@@ -21,23 +21,14 @@ import (
 )
 
 type ApiServer struct {
-	ServerAddr string
-	DB         struct {
-		DriverName       string
-		ConnectionString string
-	}
+	ServerAddr   string
+	DbConnection *sql.DB
 }
 
-func NewApiServer(cfg *appconfig.AppConfig) *ApiServer {
+func NewApiServer(cfg *appconfig.AppConfig, conn *sql.DB) *ApiServer {
 	return &ApiServer{
-		ServerAddr: fmt.Sprintf(":%v", cfg.PORT),
-		DB: struct {
-			DriverName       string
-			ConnectionString string
-		}{
-			DriverName:       cfg.DB_DRIVER,
-			ConnectionString: cfg.DB_URL,
-		},
+		ServerAddr:   fmt.Sprintf(":%v", cfg.PORT),
+		DbConnection: conn,
 	}
 }
 
@@ -82,6 +73,7 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 
 	wg.Add(1)
 	defer wg.Done() // samme with wg.Add(-1)
+
 	errChan := make(chan error, 1)
 
 	mux := http.NewServeMux()
@@ -90,12 +82,12 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 		panic(err)
 	}
 
-	conn, err := a.InitializeSQLDBConnection()
-	if err != nil {
-		errChan <- err
-	}
+	// conn, err := a.InitializeSQLDBConnection()
+	// if err != nil {
+	// 	errChan <- err
+	// }
 
-	a.registerDomains(mux, conn)
+	a.registerDomains(mux, a.DbConnection)
 
 	server := http.Server{
 		Addr:    a.ServerAddr,
@@ -107,25 +99,11 @@ func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan erro
 		log.Printf("---------------Starting Buldum App HTTP Server---------------")
 		log.Printf("---------------Listening: %v                  ---------------", a.ServerAddr)
 		log.Printf("----------------------------------------------")
-		defer conn.Close()
+		defer a.DbConnection.Close()
 		errChan <- server.ListenAndServe()
 	}()
 
 	return &server, errChan
-
-}
-
-func (a *ApiServer) InitializeSQLDBConnection() (*sql.DB, error) {
-	db, err := sql.Open(a.DB.DriverName, a.DB.ConnectionString)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
 
 }
 

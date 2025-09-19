@@ -44,7 +44,7 @@ func (a ApplicationError) GetMessage() string {
 }
 
 func (a ApplicationError) Error() string {
-	return fmt.Sprintf("%v (%v)", a.Title, a.Code)
+	return fmt.Sprintf("%v (%v) \n%v", a.Title, a.Code, a.Message)
 }
 
 var (
@@ -77,10 +77,20 @@ var (
 		Title: "Bad Request",
 		Code:  http.StatusBadRequest,
 	}
+
+	NotFound ApplicationError = ApplicationError{
+		Title: "Not Found",
+		Code:  http.StatusNotFound,
+	}
 )
 
-func (a ApplicationError) WithMessage(msg string) *ApplicationError {
-	a.Message = msg
+func (a ApplicationError) WithMessage(msg any, args ...any) *ApplicationError {
+	switch msg := msg.(type) {
+	case error:
+		a.Message = msg.Error()
+	case string:
+		a.Message = fmt.Sprintf(msg, args...)
+	}
 	return &a
 }
 

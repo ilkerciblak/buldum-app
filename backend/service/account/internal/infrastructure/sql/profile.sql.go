@@ -13,6 +13,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const archiveProfile = `-- name: ArchiveProfile :exec
+UPDATE account.profile
+SET is_archived=true
+WHERE id=$1
+`
+
+func (q *Queries) ArchiveProfile(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, archiveProfile, id)
+	return err
+}
+
 const createProfile = `-- name: CreateProfile :exec
 INSERT INTO account.profile (id, user_name, avatar_url, created_at, is_archived)
 VALUES (
@@ -39,6 +50,97 @@ func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) er
 		arg.AvatarUrl,
 		arg.CreatedAt,
 		arg.IsArchived,
+	)
+	return err
+}
+
+const deleteProfile = `-- name: DeleteProfile :exec
+DELETE FROM account.profile
+WHERE id=$1
+`
+
+func (q *Queries) DeleteProfile(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteProfile, id)
+	return err
+}
+
+const getAllProfile = `-- name: GetAllProfile :many
+SELECT id, user_name, avatar_url, created_at, updated_at, deleted_at, is_archived FROM account.profile
+`
+
+func (q *Queries) GetAllProfile(ctx context.Context) ([]AccountProfile, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProfile)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AccountProfile
+	for rows.Next() {
+		var i AccountProfile
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserName,
+			&i.AvatarUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.IsArchived,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProfileById = `-- name: GetProfileById :one
+SELECT id, user_name, avatar_url, created_at, updated_at, deleted_at, is_archived FROM account.profile
+WHERE id=$1
+`
+
+func (q *Queries) GetProfileById(ctx context.Context, id uuid.UUID) (AccountProfile, error) {
+	row := q.db.QueryRowContext(ctx, getProfileById, id)
+	var i AccountProfile
+	err := row.Scan(
+		&i.ID,
+		&i.UserName,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.IsArchived,
+	)
+	return i, err
+}
+
+const updateProfile = `-- name: UpdateProfile :exec
+UPDATE account.profile
+SET 
+    user_name=$1,
+    avatar_url=$2,
+    updated_at=$3
+WHERE id=$4
+`
+
+type UpdateProfileParams struct {
+	UserName  string
+	AvatarUrl sql.NullString
+	UpdatedAt sql.NullTime
+	ID        uuid.UUID
+}
+
+func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) error {
+	_, err := q.db.ExecContext(ctx, updateProfile,
+		arg.UserName,
+		arg.AvatarUrl,
+		arg.UpdatedAt,
+		arg.ID,
 	)
 	return err
 }
