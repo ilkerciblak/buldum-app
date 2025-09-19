@@ -34,10 +34,12 @@ func (c *CreateAccountCommand) Handler(r repository.AccountRepository, ctx conte
 		return err
 	}
 
+	// Check if any userrname conflicts
+
 	account := model.NewProfile(c.Username, c.AvatarUrl)
 
 	if err := r.Create(ctx, account); err != nil {
-		return coredomain.MethodNotAllowed.WithMessage(err.Error())
+		return coredomain.InternalServerError.WithMessage(err.Error())
 	}
 
 	return nil

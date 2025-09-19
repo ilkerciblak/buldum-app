@@ -29,11 +29,10 @@ func (s SqlAccountRepository) GetAll(ctx context.Context) ([]*model.Profile, err
 func (s SqlAccountRepository) Create(ctx context.Context, p *model.Profile) error {
 	if err := s.Db.CreateProfile(ctx, account_db.CreateProfileParams{
 		ID:         p.Id,
-		UserID:     p.UserID,
 		UserName:   p.Username,
-		AvatarUrl:  sql.NullString{String: p.AvatarUrl},
+		AvatarUrl:  sql.NullString{String: p.AvatarUrl, Valid: true},
 		CreatedAt:  p.CreatedAt,
-		IsArchived: sql.NullBool{Bool: p.IsArchived},
+		IsArchived: sql.NullBool{Bool: p.IsArchived, Valid: true},
 	}); err != nil {
 		return err
 	}

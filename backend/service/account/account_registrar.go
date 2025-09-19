@@ -1,6 +1,7 @@
 package account
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/ilkerciblak/buldum-app/api/middleware"
@@ -9,16 +10,21 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
 )
 
-func RegisterAccountDomainEndPoints(mux *http.ServeMux) {
+func RegisterAccountDomain(mux *http.ServeMux, db *sql.DB) {
+	accountQueries := account_db.New(db)
 
-	accountRepository := infrastructure.NewSqlAccountRepository(account_db.Queries{})
+	accountRepository := infrastructure.NewSqlAccountRepository(*accountQueries)
 
 	createAccountEndPoint := presentation.CreateAccountEndPoint{
 		Repository: accountRepository,
 	}
 
-	mux.HandleFunc(createAccountEndPoint.Path(), middleware.ChainMiddlewaresWithEndpoint(
-		createAccountEndPoint,
-	))
+	mux.HandleFunc(
+		createAccountEndPoint.Path(),
+		middleware.ChainMiddlewaresWithEndpoint(
+			createAccountEndPoint,
+			middleware.LoggingMiddleware{},
+		),
+	)
 
 }

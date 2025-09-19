@@ -24,7 +24,6 @@ type AccountNotificationSetting struct {
 
 type AccountProfile struct {
 	ID         uuid.UUID
-	UserID     uuid.UUID
 	UserName   string
 	AvatarUrl  sql.NullString
 	CreatedAt  time.Time

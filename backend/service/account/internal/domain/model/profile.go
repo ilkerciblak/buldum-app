@@ -8,7 +8,6 @@ import (
 
 type Profile struct {
 	Id         uuid.UUID
-	UserID     uuid.UUID
 	Username   string
 	AvatarUrl  string
 	CreatedAt  time.Time
@@ -20,7 +19,6 @@ type Profile struct {
 func NewProfile(username, avatarUrl string) *Profile {
 	return &Profile{
 		Id:         uuid.Must(uuid.NewV7()),
-		UserID:     uuid.Must(uuid.NewV7()),
 		Username:   username,
 		AvatarUrl:  avatarUrl,
 		CreatedAt:  time.Now(),

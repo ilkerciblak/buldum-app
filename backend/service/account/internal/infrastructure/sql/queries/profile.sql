@@ -1,12 +1,11 @@
 -- name: CreateProfile :exec
-INSERT INTO account.profile (id, user_id, user_name, avatar_url, created_at, is_archived)
+INSERT INTO account.profile (id, user_name, avatar_url, created_at, is_archived)
 VALUES (
     $1,
     $2,
     $3,
     $4,
-    $5,
-    $6
+    $5
 );
 
 

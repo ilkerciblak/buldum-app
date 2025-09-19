@@ -14,20 +14,18 @@ import (
 )
 
 const createProfile = `-- name: CreateProfile :exec
-INSERT INTO account.profile (id, user_id, user_name, avatar_url, created_at, is_archived)
+INSERT INTO account.profile (id, user_name, avatar_url, created_at, is_archived)
 VALUES (
     $1,
     $2,
     $3,
     $4,
-    $5,
-    $6
+    $5
 )
 `
 
 type CreateProfileParams struct {
 	ID         uuid.UUID
-	UserID     uuid.UUID
 	UserName   string
 	AvatarUrl  sql.NullString
 	CreatedAt  time.Time
@@ -37,7 +35,6 @@ type CreateProfileParams struct {
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) error {
 	_, err := q.db.ExecContext(ctx, createProfile,
 		arg.ID,
-		arg.UserID,
 		arg.UserName,
 		arg.AvatarUrl,
 		arg.CreatedAt,
