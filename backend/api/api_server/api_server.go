@@ -10,11 +10,9 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 	"github.com/ilkerciblak/buldum-app/api/middleware"
-	"github.com/ilkerciblak/buldum-app/service/account"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	_ "github.com/lib/pq"
@@ -23,6 +21,8 @@ import (
 type ApiServer struct {
 	ServerAddr   string
 	DbConnection *sql.DB
+	*http.ServeMux
+	*http.Server
 }
 
 func NewApiServer(cfg *appconfig.AppConfig, conn *sql.DB) *ApiServer {
@@ -32,79 +32,51 @@ func NewApiServer(cfg *appconfig.AppConfig, conn *sql.DB) *ApiServer {
 	}
 }
 
-func (a *ApiServer) ListenAndServeApiServer() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	wg := &sync.WaitGroup{}
-
-	server, errchan := a.startHttpServer(wg)
-
-	_ = a.gracefullShutdown(ctx, server, errchan)
-
-	cancel()
-
-	wg.Wait()
-}
-
-func (a *ApiServer) gracefullShutdown(ctx context.Context, server *http.Server, errorChan chan error) error {
+func (a *ApiServer) GracefullShutdown(ctx context.Context, errorChan <-chan error) {
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	select {
 	case err := <-errorChan:
-		log.Fatalf("[ERROR]: Starting HTTP Server Failed due: %v", err)
-		return err
+		log.Fatalf("[ERROR]: Starting HTTP Server Failed due: %v\n", err)
+
 	case sig := <-signalChan:
 		log.Printf("HTTP Server is shutting down gracefully due: %v signal", sig)
 
-		if err := server.Shutdown(ctx); err != nil {
-			log.Printf("[ERROR]: Gracefull Shutdown Failed due: %v", err)
-			server.Close()
-			return err
+		if err := a.Server.Shutdown(ctx); err != nil {
+			log.Printf("[ERROR]: Gracefull Shutdown Failed due: %v\n", err)
+			a.Server.Close()
+
 		}
 
 	}
 
-	return nil
-
 }
 
-func (a *ApiServer) startHttpServer(wg *sync.WaitGroup) (*http.Server, chan error) {
+func (a *ApiServer) ConfigureHTTPServer(domainRegistarars ...func(mux *http.ServeMux, db *sql.DB)) {
 
-	wg.Add(1)
-	defer wg.Done() // samme with wg.Add(-1)
+	a.ServeMux = http.NewServeMux()
 
-	errChan := make(chan error, 1)
-
-	mux := http.NewServeMux()
-
-	if err := a.registerHandlers(mux); err != nil {
-		panic(err)
+	for _, f := range domainRegistarars {
+		f(a.ServeMux, a.DbConnection)
 	}
 
-	// conn, err := a.InitializeSQLDBConnection()
-	// if err != nil {
-	// 	errChan <- err
-	// }
-
-	a.registerDomains(mux, a.DbConnection)
-
-	server := http.Server{
+	a.Server = &http.Server{
 		Addr:    a.ServerAddr,
-		Handler: mux,
+		Handler: a.ServeMux,
 	}
+}
 
+func (a *ApiServer) StartHttpServer(errChan chan<- error, wg *sync.WaitGroup) {
+	log.Println("Buldum Application HTTP Server")
+	log.Println("Serving on:\t", a.ServerAddr)
+	log.Println("============================")
+	wg.Add(1)
 	go func() {
-		log.Printf("----------------------------------------------")
-		log.Printf("---------------Starting Buldum App HTTP Server---------------")
-		log.Printf("---------------Listening: %v                  ---------------", a.ServerAddr)
-		log.Printf("----------------------------------------------")
-		defer a.DbConnection.Close()
-		errChan <- server.ListenAndServe()
+		errChan <- a.Server.ListenAndServe()
+		defer wg.Done()
 	}()
-
-	return &server, errChan
-
 }
 
 func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
@@ -123,11 +95,6 @@ func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
 	// account.RegisterAccountDomain(mux)
 
 	return nil
-}
-
-func (a *ApiServer) registerDomains(mux *http.ServeMux, db *sql.DB) {
-	account.RegisterAccountDomain(mux, db)
-
 }
 
 type HealthCheckEndPoint struct {
