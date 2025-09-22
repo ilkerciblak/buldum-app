@@ -20,6 +20,10 @@ func (c CreateAccountEndPoint) Path() string {
 
 func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
 
+	if r.Method != http.MethodPost {
+		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
+	}
+
 	com, err := jsonmapper.DecodeRequestBody[command.CreateAccountCommand](r)
 	if err != nil {
 		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
