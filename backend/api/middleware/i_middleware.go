@@ -3,16 +3,16 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type IMiddleware interface {
 	Act(handlerFunc http.HandlerFunc) http.HandlerFunc
 }
 
-// presentation.GenerateHandlerFunc()
-func ChainMiddlewaresWithEndpoint(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
-	// handlerFunc := presentation.GenerateHandlerFuncFromEndPoint(endPoint)
+// corepresentation.GenerateHandlerFunc()
+func ChainMiddlewaresWithEndpoint(endPoint corepresentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+	// handlerFunc := corepresentation.GenerateHandlerFuncFromEndPoint(endPoint)
 	handlerFunc := PanicRecoverMiddleware{}.Act(JsonResponseHandlerMiddleware{}.Act(endPoint))
 	// var handlerFunc http.HandlerFunc = end
 	for _, middleware := range middlewares {
@@ -24,7 +24,7 @@ func ChainMiddlewaresWithEndpoint(endPoint presentation.IEndPoint, middlewares .
 // CreateMiddlewareChain function that accepts optional list of middlewares implements IMiddleware interface and creates
 // pre-defined middleware chains with returning
 //
-//	func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc
+//	func(endPoint corepresentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc
 //
 // Example Usage:
 //
@@ -35,8 +35,8 @@ func ChainMiddlewaresWithEndpoint(endPoint presentation.IEndPoint, middlewares .
 //	mux.Handle(&ExampleEndPoint{}.Path(), authenticatedChain(&ExampleEndPoint{}, &AnotherMiddleware{}, &Another2Middleware{}))
 //
 // -	In Default behavior, CreateMiddlewareChain handles http responses with JsonResponseHandlerMiddleware{}
-func CreateMiddlewareChain(chainMiddlewares ...IMiddleware) func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
-	return func(endPoint presentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+func CreateMiddlewareChain(chainMiddlewares ...IMiddleware) func(endPoint corepresentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
+	return func(endPoint corepresentation.IEndPoint, middlewares ...IMiddleware) http.HandlerFunc {
 		chainMiddlewares = append(chainMiddlewares, middlewares...)
 		handlerFunc := JsonResponseHandlerMiddleware{}.Act(endPoint)
 		for _, middleware := range chainMiddlewares {

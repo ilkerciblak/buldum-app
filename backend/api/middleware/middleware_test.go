@@ -12,7 +12,7 @@ import (
 
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
-	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	presentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 

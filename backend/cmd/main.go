@@ -28,7 +28,7 @@ func main() {
 	defer conn.Close()
 
 	apiserver := apiserver.NewApiServer(appConfig, conn)
-	apiserver.ConfigureHTTPServer(account.RegisterAccountDomain)
+	apiserver.ConfigureHTTPServer(account.RegisterAccountDomainAPI)
 	apiserver.StartHttpServer(errChan, &wg)
 	apiserver.GracefullShutdown(ctx, errChan)
 

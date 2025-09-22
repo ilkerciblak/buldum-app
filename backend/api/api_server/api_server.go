@@ -14,7 +14,7 @@ import (
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
-	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	presentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	_ "github.com/lib/pq"
 )
 
@@ -54,12 +54,12 @@ func (a *ApiServer) GracefullShutdown(ctx context.Context, errorChan <-chan erro
 
 }
 
-func (a *ApiServer) ConfigureHTTPServer(domainRegistarars ...func(mux *http.ServeMux, db *sql.DB)) {
+func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB) *http.ServeMux) {
 
 	a.ServeMux = http.NewServeMux()
 
-	for _, f := range domainRegistarars {
-		f(a.ServeMux, a.DbConnection)
+	for _, f := range domainRegisterars {
+		a.ServeMux.Handle("/api/", http.StripPrefix("/api", f(a.DbConnection)))
 	}
 
 	a.Server = &http.Server{
