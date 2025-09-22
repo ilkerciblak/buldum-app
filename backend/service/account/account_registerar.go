@@ -10,7 +10,10 @@ import (
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
 )
 
-func RegisterAccountDomain(mux *http.ServeMux, db *sql.DB) {
+func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
+
+	accountMux := http.NewServeMux()
+
 	accountQueries := account_db.New(db)
 
 	accountRepository := repo.NewSqlAccountRepository(*accountQueries)
@@ -19,12 +22,14 @@ func RegisterAccountDomain(mux *http.ServeMux, db *sql.DB) {
 		Repository: accountRepository,
 	}
 
-	mux.HandleFunc(
+	accountMux.HandleFunc(
 		createAccountEndPoint.Path(),
 		middleware.ChainMiddlewaresWithEndpoint(
 			createAccountEndPoint,
 			middleware.LoggingMiddleware{},
 		),
 	)
+
+	return accountMux
 
 }
