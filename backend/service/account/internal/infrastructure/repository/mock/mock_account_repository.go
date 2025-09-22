@@ -22,6 +22,10 @@ type MockAccountRepository struct {
 }
 
 func (m *MockAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*model.Profile, error) {
+	if userId == uuid.Nil || userId == uuid.Max {
+		return nil, coredomain.NotFound
+	}
+
 	return model.NewProfile("ilkerciblak", "url"), nil
 }
 func (m *MockAccountRepository) GetAll(ctx context.Context) ([]*model.Profile, error) {
