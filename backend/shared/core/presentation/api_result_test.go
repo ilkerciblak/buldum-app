@@ -1,4 +1,4 @@
-package presentation_test
+package corepresentation_test
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
-	"github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 func TestCorePresentation__RespondWithJSON(t *testing.T) {
@@ -52,7 +52,7 @@ func TestCorePresentation__RespondWithJSON(t *testing.T) {
 			func(t *testing.T) {
 				testReader := httptest.NewRecorder()
 
-				presentation.RespondWithJSON(testReader, tc.Input)
+				corepresentation.RespondWithJSON(testReader, tc.Input)
 
 				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
 					t.Fatalf("Expected StatusCode %v, Output StatusCode %v", testReader.Result().StatusCode, tc.ExpectedOutput.StatusCode)
@@ -116,7 +116,7 @@ func TestCorePresentation__RespondWithErrorJson(t *testing.T) {
 			func(t *testing.T) {
 				testReader := httptest.NewRecorder()
 
-				presentation.RespondWithErrorJson(testReader, &tc.Input)
+				corepresentation.RespondWithErrorJson(testReader, &tc.Input)
 
 				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
 
@@ -166,7 +166,7 @@ func TestCorePresentation__RespondWithProblemDetails(t *testing.T) {
 			func(t *testing.T) {
 				testReader := httptest.NewRecorder()
 
-				presentation.RespondWithProblemDetails(testReader, tc.Input)
+				corepresentation.RespondWithProblemDetails(testReader, tc.Input)
 
 				if testReader.Result().StatusCode != tc.ExpectedOutput.StatusCode {
 					t.Fatalf("Excepted StatusCode %v, Got %v", tc.ExpectedOutput.StatusCode, testReader.Result().StatusCode)
