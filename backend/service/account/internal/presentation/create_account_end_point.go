@@ -22,7 +22,7 @@ func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 
 	com, err := jsonmapper.DecodeRequestBody[command.CreateAccountCommand](r)
 	if err != nil {
-		return corepresentation.ApiResult[any]{}, coredomain.InternalServerError.WithMessage(err.Error())
+		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
 	}
 
 	if err := com.Handler(c.Repository, r.Context()); err != nil {
