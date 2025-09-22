@@ -21,7 +21,8 @@ func (e JsonResponseHandlerMiddleware) Act(endPoint corepresentation.IEndPoint) 
 		}
 
 		if data.Data != nil {
-			corepresentation.RespondWithJSON(w, data)
+			corepresentation.RespondWithJSON(w, data.Data)
+			return
 		}
 		w.WriteHeader(data.StatusCode)
 		log.Printf("JsonResponseHandlerMiddleware Bitirdi")
