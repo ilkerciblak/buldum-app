@@ -10,7 +10,19 @@ import (
 )
 
 type AccountGetByIdQuery struct {
-	Id uuid.UUID
+	Id uuid.UUID `path:"id"`
+}
+
+func NewAccountGetByIdQuery(m map[string]string) (*AccountGetByIdQuery, error) {
+
+	userId, err := uuid.Parse(m["id"])
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountGetByIdQuery{
+		Id: userId,
+	}, nil
 }
 
 func (a AccountGetByIdQuery) Handler(r repository.AccountRepository, ctx context.Context) (*model.Profile, coredomain.IApplicationError) {

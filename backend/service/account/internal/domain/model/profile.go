@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 type Profile struct {
@@ -26,4 +27,37 @@ func NewProfile(username, avatarUrl string) *Profile {
 	}
 }
 
-// func (u *Profile) UpdateUserName(username string)
+type WithUpdateFunc func(p *Profile) (*Profile, error)
+
+func UpdateUsername(val string) WithUpdateFunc {
+	return func(p *Profile) (*Profile, error) {
+		p.Username = val
+		return p, nil
+	}
+}
+
+func UpdateAvatarUrl(val string) WithUpdateFunc {
+	return func(p *Profile) (*Profile, error) {
+		p.AvatarUrl = val
+		return p, nil
+	}
+}
+
+// func ArchiveProfile(p *Profile) *Profile {
+// 	if !p.IsArchived{
+
+// 	}
+// }
+
+func (p *Profile) UpdateProfile(fs ...WithUpdateFunc) (*Profile, error) {
+	for _, f := range fs {
+		pnew, err := f(p)
+		if err != nil {
+			return pnew, err.(coredomain.ApplicationError)
+		}
+		p = pnew
+	}
+	p.UpdatedAt = time.Now()
+
+	return p, nil
+}

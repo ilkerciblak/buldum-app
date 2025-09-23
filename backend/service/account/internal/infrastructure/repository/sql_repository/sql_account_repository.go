@@ -27,7 +27,7 @@ func (s SqlAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*m
 		if err == sql.ErrNoRows {
 			return nil, coredomain.NotFound.WithMessage("No User Found With userId %v", userId)
 		}
-
+		// TODO: BETTER ERROR HANDLING
 		return nil, coredomain.InternalServerError.WithMessage("%v", err.Error())
 	}
 

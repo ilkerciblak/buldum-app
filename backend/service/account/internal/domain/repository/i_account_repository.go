@@ -14,4 +14,8 @@ type AccountRepository interface {
 	Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error
 	Delete(ctx context.Context, userId uuid.UUID) error
 	Archive(ctx context.Context, userId uuid.UUID) error
+	// GetContactInformationByAccountId(ctx context.Context, userId uuid.UUID) ([]*model.ContactInformation, error)
+	// GetAllContactInformations(ctx context.Context) ([]*model.ContactInformation, error)
+	// GetContactInformationById(ctx context.Context, contactId uuid.UUID) (*model.ContactInformation, error)
+	// CreateContactInformation(ctx context.Context, m *model.ContactInformation) error
 }
