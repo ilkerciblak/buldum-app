@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
+	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )

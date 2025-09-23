@@ -15,3 +15,6 @@ goose-down-service:
 
 service-create-file:
 	@touch ./service/${service}/internal/${place}/${f}
+
+service-create-folder:
+	@mkdir ./service/${service}/internal/${place}/${f}

@@ -7,7 +7,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
-	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
+	profile "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 )
 
 func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
@@ -16,13 +16,13 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 	accountQueries := account_db.New(db)
 	accountRepository := repo.NewSqlAccountRepository(*accountQueries)
 
-	createAccountEndPoint := presentation.CreateAccountEndPoint{
+	createAccountEndPoint := profile.CreateAccountEndPoint{
 		Repository: accountRepository,
 	}
-	getAllAccountsEndPoint := presentation.GetAllProfilesEndPoint{
+	getAllAccountsEndPoint := profile.GetAllProfilesEndPoint{
 		Repository: accountRepository,
 	}
-	getAccountByIdEndPoint := presentation.AccountGetByIdEndPoint{
+	getAccountByIdEndPoint := profile.AccountGetByIdEndPoint{
 		Repository: accountRepository,
 	}
 

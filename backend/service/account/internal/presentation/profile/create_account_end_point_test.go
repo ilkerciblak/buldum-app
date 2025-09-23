@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
+	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
