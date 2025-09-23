@@ -22,3 +22,17 @@ func EncodeObjectToJson[T any](payload T) ([]byte, error) {
 	}
 	return data, nil
 }
+
+func EncodeDecodeMapToStruct[T interface{}](m map[string]interface{}) (target T, err error) {
+	marsh, err := json.Marshal(m)
+	if err != nil {
+		return target, err
+	}
+
+	err = json.Unmarshal(marsh, &target)
+	if err != nil {
+		return target, err
+	}
+
+	return target, nil
+}

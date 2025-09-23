@@ -67,6 +67,22 @@ func TestJsonMapper_DecodeRequestBody(t *testing.T) {
 
 }
 
-func TestJsonMapper_Encoder(t *testing.T) {
+func TestJSONMapper__EncodeDecodeMapToStruct(t *testing.T) {
+	type testStruct struct {
+		Name string
+		Age  int
+	}
 
+	testMap := map[string]interface{}{
+		"name": "ilkerciblak",
+		"age":  3,
+	}
+
+	output, err := EncodeDecodeMapToStruct[testStruct](testMap)
+	if err != nil {
+
+		t.Fatalf("%v", err)
+	}
+
+	t.Log(output)
 }
