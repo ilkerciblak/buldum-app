@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"log"
 
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
@@ -18,13 +19,15 @@ func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("AccountGetAllQuery with %v", cqp)
 	return &AccountGetAllQuery{
 		CommonQueryParameters: *cqp,
 	}, nil
 }
 
 func (a AccountGetAllQuery) Handler(r repository.AccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {
-	data, err := r.GetAll(ctx)
+
+	data, err := r.GetAll(ctx, a.CommonQueryParameters)
 
 	if err != nil {
 		return nil, coredomain.BadRequest.WithMessage(err.Error())

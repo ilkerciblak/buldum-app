@@ -12,6 +12,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
+	"github.com/ilkerciblak/buldum-app/shared/core/application"
 )
 
 var userId uuid.UUID
@@ -63,9 +64,9 @@ func TestSQLAccountRepository__GetAll(t *testing.T) {
 		userId, "ilkerciblak", "url", time.Now(), nil, nil, false,
 	)
 
-	mock.ExpectQuery(`-- name: GetAllProfile :many .*`).WithoutArgs().WillReturnRows(rows)
-
-	_, err = repo.GetAll(ctx)
+	mock.ExpectQuery(`-- name: GetAllProfile :many .*`).WithArgs("created_at", 30, 0).WillReturnRows(rows)
+	params, _ := application.NewCommonQueryParameters(map[string]any{})
+	_, err = repo.GetAll(ctx, *params)
 	if err != nil {
 		t.Fatalf("Error Occured While repo.GetAll with :\n%v", err)
 	}

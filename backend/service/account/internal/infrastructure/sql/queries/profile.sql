@@ -14,7 +14,10 @@ WHERE id=$1;
 
 
 -- name: GetAllProfile :many
-SELECT * FROM account.profile;
+SELECT * FROM account.profile
+ORDER BY $1
+LIMIT $2
+OFFSET $3;
 
 -- name: ArchiveProfile :exec
 UPDATE account.profile

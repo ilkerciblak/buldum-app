@@ -66,10 +66,19 @@ func (q *Queries) DeleteProfile(ctx context.Context, id uuid.UUID) error {
 
 const getAllProfile = `-- name: GetAllProfile :many
 SELECT id, user_name, avatar_url, created_at, updated_at, deleted_at, is_archived FROM account.profile
+ORDER BY $1
+LIMIT $2
+OFFSET $3
 `
 
-func (q *Queries) GetAllProfile(ctx context.Context) ([]AccountProfile, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProfile)
+type GetAllProfileParams struct {
+	Column1 interface{}
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) GetAllProfile(ctx context.Context, arg GetAllProfileParams) ([]AccountProfile, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProfile, arg.Column1, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

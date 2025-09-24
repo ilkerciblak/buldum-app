@@ -1,13 +1,14 @@
 package application
 
+import "log"
+
 type CommonQueryParameters struct {
 	Pagination
 	Sorting
 }
 
 func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) {
-	pagination := &Pagination{}
-	sorting := &Sorting{}
+	pagination, sorting := defaultCommonQueryParameters()
 
 	if page := m["page"]; page != nil && page != 0 {
 		pagination.Page = page.(int)
@@ -16,18 +17,37 @@ func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) 
 	if limit := m["limit"]; limit != nil && limit != 0 {
 		pagination.Limit = limit.(int)
 	}
-	if offset := m["limit"]; offset != nil && offset != 0 {
-		pagination.Limit = offset.(int)
+
+	if pagination.Page > 1 {
+		pagination.Offset = pagination.Limit * (pagination.Page - 1)
 	}
 
-	if m["sort"] != nil && m["sort"] != "" {
-		sorting.Sort = m["sort"].(string)
+	if sortBy := m["sort"]; sortBy != nil && sortBy != "" {
+		log.Print(sortBy.(string))
+		sorting.Sort = sortBy.(string)
+	}
+
+	if order := m["order"]; order != nil && order != "" {
+		sorting.Order = order.(string)
 	}
 
 	return &CommonQueryParameters{
 		Pagination: *pagination,
 		Sorting:    *sorting,
 	}, nil
+}
+
+func defaultCommonQueryParameters() (*Pagination, *Sorting) {
+	return &Pagination{
+			Page:   1,
+			Limit:  30,
+			Offset: 0,
+		},
+		&Sorting{
+			Sort:  "created_at",
+			Order: "asc",
+		}
+
 }
 
 type Pagination struct {

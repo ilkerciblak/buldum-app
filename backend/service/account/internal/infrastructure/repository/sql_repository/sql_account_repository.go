@@ -3,11 +3,13 @@ package sqlrepository
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql/mapper"
+	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
@@ -34,8 +36,13 @@ func (s SqlAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*m
 	return mapper.DBModelToDTO(data), nil
 }
 
-func (s SqlAccountRepository) GetAll(ctx context.Context) ([]*model.Profile, error) {
-	data, err := s.Db.GetAllProfile(ctx)
+func (s SqlAccountRepository) GetAll(ctx context.Context, params application.CommonQueryParameters) ([]*model.Profile, error) {
+	log.Print(params.Sort, "SQLREPO")
+	data, err := s.Db.GetAllProfile(ctx, account_db.GetAllProfileParams{
+		Column1: params.Sort,
+		Limit:   int32(params.Limit),
+		Offset:  int32(params.Offset),
+	})
 
 	if err != nil {
 		return nil, coredomain.InternalServerError.WithMessage(err)
