@@ -21,10 +21,15 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	if r.Method != http.MethodGet {
 		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed.WithMessage("Use GET method")
 	}
-
-	data, err := query.AccountGetAllQuery{}.Handler(e.Repository, r.Context())
+	queryMap := corepresentation.QueryParametersMapper(r, query.AccountGetAllQuery{})
+	q, err := query.NewAccountGetAllQuery(queryMap)
 	if err != nil {
-		return corepresentation.ApiResult[any]{}, err
+		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
+	}
+
+	data, handlerErr := q.Handler(e.Repository, r.Context())
+	if handlerErr != nil {
+		return corepresentation.ApiResult[any]{}, handlerErr
 	}
 
 	return corepresentation.ApiResult[any]{
