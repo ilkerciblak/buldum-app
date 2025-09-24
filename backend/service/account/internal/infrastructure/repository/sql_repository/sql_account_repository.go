@@ -3,7 +3,6 @@ package sqlrepository
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
@@ -37,11 +36,11 @@ func (s SqlAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*m
 }
 
 func (s SqlAccountRepository) GetAll(ctx context.Context, params application.CommonQueryParameters) ([]*model.Profile, error) {
-	log.Print(params.Sort, "SQLREPO")
 	data, err := s.Db.GetAllProfile(ctx, account_db.GetAllProfileParams{
 		Column1: params.Sort,
 		Limit:   int32(params.Limit),
 		Offset:  int32(params.Offset),
+		Column4: params.Order,
 	})
 
 	if err != nil {

@@ -60,6 +60,7 @@ func QueryParametersMapper(r *http.Request, target any) map[string]interface{} {
 		}
 
 	}
+
 	return valMap
 }
 
