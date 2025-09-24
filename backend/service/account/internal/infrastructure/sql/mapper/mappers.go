@@ -20,7 +20,7 @@ func DBModelToDTO(a account_db.AccountProfile) *model.Profile {
 }
 
 func DBModelListToDTO(l []account_db.AccountProfile) []*model.Profile {
-	ml := make([]*model.Profile, len(l))
+	ml := make([]*model.Profile, 0)
 
 	for _, dbm := range l {
 		ml = append(ml, DBModelToDTO(dbm))
