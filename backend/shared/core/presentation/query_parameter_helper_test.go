@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
@@ -83,6 +84,7 @@ func TestCorePresentation__QueryValuesMapperTest(t *testing.T) {
 			ExpectedOutput:   map[string]interface{}{},
 			DoesExpectsError: false,
 			targetType: struct {
+				f1 string `query:"f1"`
 			}{},
 		},
 		{
@@ -138,6 +140,59 @@ func TestCorePresentation__QueryValuesMapperTest(t *testing.T) {
 				f2 string   `query:"f2"`
 				f3 string   `query:"f3"`
 			}{},
+		},
+		{
+			Name:  "Request Have Fields With List Options Not Strings Also An Arbitrary Fields, Should OK",
+			Input: httptest.NewRequest("GET", "/test?f1=true&f2=1&f2=2&f2=3&foo=bar", nil),
+			ExpectedOutput: map[string]interface{}{
+				"f1": true,
+				"f2": []int{1, 2, 3},
+			},
+			DoesExpectsError: false,
+			targetType: struct {
+				f1 bool   `query:"f1"`
+				f2 []int  `query:"f2"`
+				f3 []bool `query:"f3"`
+			}{},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(
+			c.Name,
+			func(t *testing.T) {
+				rr := httptest.NewRecorder()
+				mux.ServeHTTP(rr, c.Input)
+				output := corepresentation.QueryParametersMapper(c.Input, c.targetType)
+				if !maps.EqualFunc(c.ExpectedOutput, output, reflect.DeepEqual) {
+					t.Fatalf("Output Expectations are NOT Satisfied\nExpected %v\nGot %v", c.ExpectedOutput, output)
+				}
+
+			},
+		)
+	}
+}
+
+func TestCorePresentation__QueryValuesWithCommonQueryParameters(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /test", func(w http.ResponseWriter, r *http.Request) {})
+
+	cases := []struct {
+		Name             string
+		Input            *http.Request
+		targetType       interface{}
+		ExpectedOutput   map[string]interface{}
+		DoesExpectsError bool
+	}{
+		{
+			Name:  "Common Query Params",
+			Input: httptest.NewRequest("GET", "/test?page=3&order=desc", nil),
+			ExpectedOutput: map[string]interface{}{
+				"page":  3,
+				"order": "desc",
+			},
+			DoesExpectsError: false,
+			targetType:       application.CommonQueryParameters{},
 		},
 	}
 
