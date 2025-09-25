@@ -1,12 +1,21 @@
 package application
 
+import "log"
+
 type CommonQueryParameters struct {
 	Pagination
 	Sorting
 }
 
-func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) {
+func NewCommonQueryParameters(m map[string]any, allowedCommonQueries map[string]map[string]bool) (*CommonQueryParameters, error) {
 	pagination, sorting := DefaultCommonQueryParameters()
+
+	orderWhiteList := map[string]bool{
+		"asc":  true,
+		"ASC":  true,
+		"desc": true,
+		"DESC": true,
+	}
 
 	if page := m["page"]; page != nil && page != 0 {
 		pagination.Page = page.(int)
@@ -21,10 +30,13 @@ func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) 
 	}
 
 	if sortBy := m["sort"]; sortBy != nil && sortBy != "" {
-		sorting.Sort = sortBy.(string)
+		if allowedCommonQueries["sort"][sortBy.(string)] {
+			sorting.Sort = sortBy.(string)
+		}
+		log.Printf("Sorting Query Not in the whitelist: %v", sortBy)
 	}
 
-	if order := m["order"]; order != nil && order != "" {
+	if order := m["order"]; order != nil && order != "" && orderWhiteList[order.(string)] {
 		sorting.Order = order.(string)
 	}
 

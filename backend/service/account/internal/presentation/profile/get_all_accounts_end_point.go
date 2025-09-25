@@ -19,7 +19,7 @@ func (e GetAllProfilesEndPoint) Path() string {
 
 func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
 	if r.Method != http.MethodGet {
-		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed.WithMessage("Use GET method")
+		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
 	}
 	queryMap := corepresentation.QueryParametersMapper(r, query.AccountGetAllQuery{})
 	q, err := query.NewAccountGetAllQuery(queryMap)

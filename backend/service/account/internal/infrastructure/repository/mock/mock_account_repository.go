@@ -51,5 +51,9 @@ func (m *MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) er
 	return nil
 }
 func (m *MockAccountRepository) Archive(ctx context.Context, userId uuid.UUID) error {
+	if userId == uuid.Max {
+		return coredomain.BadRequest.WithMessage("User Already Archived")
+	}
+
 	return nil
 }

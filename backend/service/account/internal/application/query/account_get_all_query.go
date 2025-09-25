@@ -15,7 +15,15 @@ type AccountGetAllQuery struct {
 }
 
 func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
-	cqp, err := application.NewCommonQueryParameters(m)
+	whiteList := map[string]map[string]bool{
+		"sort": {
+			"user_name":  true,
+			"created_at": true,
+			"updated_at": true,
+			"id":         true,
+		},
+	}
+	cqp, err := application.NewCommonQueryParameters(m, whiteList)
 	if err != nil {
 		return nil, err
 	}
@@ -23,6 +31,7 @@ func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &AccountGetAllQuery{
 		CommonQueryParameters:    *cqp,
 		ProfileGetAllQueryFilter: *filter,
