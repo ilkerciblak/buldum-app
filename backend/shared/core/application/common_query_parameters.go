@@ -1,14 +1,12 @@
 package application
 
-import "log"
-
 type CommonQueryParameters struct {
 	Pagination
 	Sorting
 }
 
 func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) {
-	pagination, sorting := defaultCommonQueryParameters()
+	pagination, sorting := DefaultCommonQueryParameters()
 
 	if page := m["page"]; page != nil && page != 0 {
 		pagination.Page = page.(int)
@@ -23,7 +21,6 @@ func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) 
 	}
 
 	if sortBy := m["sort"]; sortBy != nil && sortBy != "" {
-		log.Print(sortBy.(string))
 		sorting.Sort = sortBy.(string)
 	}
 
@@ -37,7 +34,7 @@ func NewCommonQueryParameters(m map[string]any) (*CommonQueryParameters, error) 
 	}, nil
 }
 
-func defaultCommonQueryParameters() (*Pagination, *Sorting) {
+func DefaultCommonQueryParameters() (*Pagination, *Sorting) {
 	return &Pagination{
 			Page:   1,
 			Limit:  30,

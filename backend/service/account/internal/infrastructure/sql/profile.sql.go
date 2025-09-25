@@ -63,21 +63,34 @@ func (q *Queries) DeleteProfile(ctx context.Context, id uuid.UUID) error {
 
 const getAllProfile = `-- name: GetAllProfile :many
 SELECT id, user_name, avatar_url, created_at, updated_at, deleted_at, is_archived FROM account.profile
+WHERE 
+	($3::text = '' OR user_name LIKE '%' || $3 || '%')
+	AND ($4::bool = false OR is_archived = $4)
 ORDER BY $order
 LIMIT $1
 OFFSET $2
 `
 
 type GetAllProfileParams struct {
-	Column1 string
-	Limit   int32
-	Offset  int32
-	Column4 string
+	Column1    string
+	Limit      int32
+	Offset     int32
+	Column4    string
+	UserName   string
+	IsArchived bool
 }
 
 func (q *Queries) GetAllProfile(ctx context.Context, arg GetAllProfileParams) ([]AccountProfile, error) {
 
-	rows, err := q.db.QueryContext(ctx, strings.Replace(getAllProfile, "$order", fmt.Sprintf("%s %s", arg.Column1, arg.Column4), 1), arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, strings.Replace(
+		getAllProfile,
+		"$order",
+		fmt.Sprintf("%s %s", arg.Column1, arg.Column4), 1),
+		arg.Limit,
+		arg.Offset,
+		arg.UserName,
+		arg.IsArchived,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -4,15 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
 	"github.com/ilkerciblak/buldum-app/shared/core/application"
+	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 var userId uuid.UUID
@@ -58,22 +61,90 @@ func TestSQLAccountRepository__GetAll(t *testing.T) {
 		t.Fatalf("Error occured when preparing mock DB")
 	}
 	defer db.Close()
-	ctx := context.Background()
+	tt := time.Now()
+	// _ = mock.NewRows([]string{"id", "username", "avatar_url", "created_at", "updated_at", "deleted_at", "is_archived"}).AddRow(
+	// 	userId, "ilkerciblak", "url", tt, nil, nil, false,
+	// )
 
-	rows := mock.NewRows([]string{"id", "username", "avatar_url", "created_at", "updated_at", "deleted_at", "is_archived"}).AddRow(
-		userId, "ilkerciblak", "url", time.Now(), nil, nil, false,
-	)
-
-	mock.ExpectQuery(`-- name: GetAllProfile :many .*`).WithArgs("created_at", 30, 0).WillReturnRows(rows)
-	params, _ := application.NewCommonQueryParameters(map[string]any{})
-	_, err = repo.GetAll(ctx, *params)
-	if err != nil {
-		t.Fatalf("Error Occured While repo.GetAll with :\n%v", err)
+	cases := []struct {
+		Name            string
+		ExpectedRows    *sqlmock.Rows
+		ExpectedData    []*model.Profile
+		Params          *application.CommonQueryParameters
+		Filter          *repository.ProfileGetAllQueryFilter
+		DoesExpectError bool
+		ExpectedError   coredomain.IApplicationError
+	}{
+		{
+			Name: "Zottiri zittiri",
+			ExpectedRows: sqlmock.NewRows([]string{"id", "username", "avatar_url", "created_at", "updated_at", "deleted_at", "is_archived"}).AddRow(
+				userId, "ilkerciblak", "url", tt, nil, nil, false,
+			),
+			ExpectedData: []*model.Profile{{
+				Id:         userId,
+				Username:   "ilkerciblak",
+				AvatarUrl:  "url",
+				CreatedAt:  tt,
+				IsArchived: false,
+			}},
+			Params: &application.CommonQueryParameters{
+				Pagination: application.Pagination{
+					Page:   1,
+					Limit:  10,
+					Offset: 0,
+				},
+				Sorting: application.Sorting{
+					Sort:  "created_at",
+					Order: "asc",
+				},
+			},
+			Filter:          repository.DefaultAccountGetAllQueryFilter(),
+			DoesExpectError: false,
+		},
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("Mock Expectations Were Not Met with :\n%v", err)
+	for _, c := range cases {
+		t.Run(
+			c.Name,
+			func(t *testing.T) {
+				ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+				mock.ExpectQuery(`-- name: GetAllProfile :many .*`).WithArgs(
+					c.Params.Limit,
+					c.Params.Limit*(c.Params.Page-1),
+					c.Filter.Username,
+					c.Filter.IsArchived,
+				).WillReturnRows(c.ExpectedRows)
+
+				data, err := repo.GetAll(ctx, *c.Params, *c.Filter)
+
+				if (err != nil) && !c.DoesExpectError {
+					t.Fatalf("Unexpected Error Occured %v", err)
+				}
+				t.Log(len(data))
+
+				if !reflect.DeepEqual(err, c.ExpectedError) {
+					t.Fatalf("Error Output Was Not Satisfied\n Expected %v\n Got %v", c.ExpectedError, err)
+				}
+
+				if !reflect.DeepEqual(data, c.ExpectedData) && !c.DoesExpectError {
+					t.Fatalf("Output Expectations Not Satisfied\n Expected %v\n Got %v", c.ExpectedData, data)
+				}
+
+			},
+		)
 	}
+
+	// params, _ := application.NewCommonQueryParameters(map[string]any{})
+	// filter, _ := repository.NewAccountGetAllQueryFilter(map[string]any{})
+
+	// _, err = repo.GetAll(ctx, *params, *filter)
+	// if err != nil {
+	// 	t.Fatalf("Error Occured While repo.GetAll with :\n%v", err)
+	// }
+
+	// if err := mock.ExpectationsWereMet(); err != nil {
+	// 	t.Fatalf("Mock Expectations Were Not Met with :\n%v", err)
+	// }
 }
 
 func TestSQLAccountRepository__Create(t *testing.T) {

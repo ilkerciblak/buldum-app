@@ -11,6 +11,7 @@ import (
 
 type AccountGetAllQuery struct {
 	application.CommonQueryParameters
+	repository.ProfileGetAllQueryFilter
 }
 
 func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
@@ -18,14 +19,19 @@ func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
 	if err != nil {
 		return nil, err
 	}
+	filter, err := repository.NewAccountGetAllQueryFilter(m)
+	if err != nil {
+		return nil, err
+	}
 	return &AccountGetAllQuery{
-		CommonQueryParameters: *cqp,
+		CommonQueryParameters:    *cqp,
+		ProfileGetAllQueryFilter: *filter,
 	}, nil
 }
 
 func (a AccountGetAllQuery) Handler(r repository.AccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {
 
-	data, err := r.GetAll(ctx, a.CommonQueryParameters)
+	data, err := r.GetAll(ctx, a.CommonQueryParameters, a.ProfileGetAllQueryFilter)
 
 	if err != nil {
 		return nil, coredomain.BadRequest.WithMessage(err.Error())
