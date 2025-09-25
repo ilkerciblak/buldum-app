@@ -38,7 +38,7 @@ func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
 	}, nil
 }
 
-func (a AccountGetAllQuery) Handler(r repository.AccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {
+func (a AccountGetAllQuery) Handler(r repository.IAccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {
 
 	data, err := r.GetAll(ctx, a.CommonQueryParameters, a.ProfileGetAllQueryFilter)
 

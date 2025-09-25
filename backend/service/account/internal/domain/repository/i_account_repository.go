@@ -8,7 +8,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/core/application"
 )
 
-type AccountRepository interface {
+type IAccountRepository interface {
 	GetById(ctx context.Context, userId uuid.UUID) (*model.Profile, error)
 	GetAll(ctx context.Context, params application.CommonQueryParameters, filter ProfileGetAllQueryFilter) ([]*model.Profile, error)
 	Create(ctx context.Context, p *model.Profile) error

@@ -10,7 +10,7 @@ import (
 )
 
 type AccountGetByIdEndPoint struct {
-	Repository repository.AccountRepository
+	Repository repository.IAccountRepository
 }
 
 func (a AccountGetByIdEndPoint) Path() string {

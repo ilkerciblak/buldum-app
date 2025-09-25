@@ -25,6 +25,9 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 	getAccountByIdEndPoint := profile.AccountGetByIdEndPoint{
 		Repository: accountRepository,
 	}
+	archiveAccountEndPoint := profile.ArchiveAccountEndPoint{
+		Repository: accountRepository,
+	}
 
 	accountMux.HandleFunc(
 		createAccountEndPoint.Path(),
@@ -45,6 +48,14 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 		getAllAccountsEndPoint.Path(),
 		middleware.ChainMiddlewaresWithEndpoint(
 			getAllAccountsEndPoint,
+			middleware.LoggingMiddleware{},
+		),
+	)
+
+	accountMux.HandleFunc(
+		archiveAccountEndPoint.Path(),
+		middleware.ChainMiddlewaresWithEndpoint(
+			archiveAccountEndPoint,
 			middleware.LoggingMiddleware{},
 		),
 	)

@@ -28,7 +28,7 @@ func (c *CreateAccountCommand) Validate() (*CreateAccountCommand, coredomain.IAp
 	return c, nil
 }
 
-func (c *CreateAccountCommand) Handler(r repository.AccountRepository, ctx context.Context) coredomain.IApplicationError {
+func (c *CreateAccountCommand) Handler(r repository.IAccountRepository, ctx context.Context) coredomain.IApplicationError {
 	// Validate the request
 	if _, err := c.Validate(); err != nil {
 		return err
@@ -39,7 +39,7 @@ func (c *CreateAccountCommand) Handler(r repository.AccountRepository, ctx conte
 	account := model.NewProfile(c.Username, c.AvatarUrl)
 
 	if err := r.Create(ctx, account); err != nil {
-		return coredomain.InternalServerError.WithMessage(err.Error())
+		return coredomain.InternalServerError.WithMessage(err)
 	}
 
 	return nil

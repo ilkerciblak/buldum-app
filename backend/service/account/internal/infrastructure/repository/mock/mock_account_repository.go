@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/google/uuid"
@@ -52,7 +53,7 @@ func (m *MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) er
 }
 func (m *MockAccountRepository) Archive(ctx context.Context, userId uuid.UUID) error {
 	if userId == uuid.Max {
-		return coredomain.BadRequest.WithMessage("User Already Archived")
+		return errors.New("Test Error")
 	}
 
 	return nil

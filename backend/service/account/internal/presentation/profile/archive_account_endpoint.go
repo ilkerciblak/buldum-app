@@ -10,32 +10,31 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
-type CreateAccountEndPoint struct {
+type ArchiveAccountEndPoint struct {
 	Repository repository.IAccountRepository
 }
 
-func (c CreateAccountEndPoint) Path() string {
-	return "POST /account"
+func (e ArchiveAccountEndPoint) Path() string {
+	return "PUT /account"
 }
 
-func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
+func (e ArchiveAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
+	// if r.Method != http.MethodPost {
+	// 	return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
+	// }
 
-	if r.Method != http.MethodPost {
-		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
-	}
-
-	com, err := jsonmapper.DecodeRequestBody[command.CreateAccountCommand](r)
+	c, err := jsonmapper.DecodeRequestBody[command.ArchiveAccountCommand](r)
 	if err != nil {
 		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
 	}
 
-	if err := com.Handler(c.Repository, r.Context()); err != nil {
+	if err := c.Handler(e.Repository, r.Context()); err != nil {
 		return corepresentation.ApiResult[any]{}, err
 	}
 
 	return corepresentation.ApiResult[any]{
 		Data:       nil,
-		StatusCode: http.StatusCreated,
+		StatusCode: http.StatusNoContent,
 	}, nil
 
 }

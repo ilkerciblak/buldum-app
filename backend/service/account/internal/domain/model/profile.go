@@ -1,10 +1,10 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 type Profile struct {
@@ -43,17 +43,19 @@ func UpdateAvatarUrl(val string) WithUpdateFunc {
 	}
 }
 
-// func ArchiveProfile(p *Profile) *Profile {
-// 	if !p.IsArchived{
-
-// 	}
-// }
+func ArchiveProfile(p *Profile) (*Profile, error) {
+	if p.IsArchived {
+		return p, fmt.Errorf("Profile Already Archived")
+	}
+	p.IsArchived = true
+	return p, nil
+}
 
 func (p *Profile) UpdateProfile(fs ...WithUpdateFunc) (*Profile, error) {
 	for _, f := range fs {
 		pnew, err := f(p)
 		if err != nil {
-			return pnew, err.(coredomain.ApplicationError)
+			return pnew, err
 		}
 		p = pnew
 	}

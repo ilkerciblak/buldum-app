@@ -25,7 +25,7 @@ func NewAccountGetByIdQuery(m map[string]string) (*AccountGetByIdQuery, error) {
 	}, nil
 }
 
-func (a AccountGetByIdQuery) Handler(r repository.AccountRepository, ctx context.Context) (*model.Profile, coredomain.IApplicationError) {
+func (a AccountGetByIdQuery) Handler(r repository.IAccountRepository, ctx context.Context) (*model.Profile, coredomain.IApplicationError) {
 	data, err := r.GetById(ctx, a.Id)
 	if err != nil {
 		return nil, err.(coredomain.IApplicationError)
