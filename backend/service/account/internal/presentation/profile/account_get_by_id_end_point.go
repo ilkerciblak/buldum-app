@@ -14,7 +14,7 @@ type AccountGetByIdEndPoint struct {
 }
 
 func (a AccountGetByIdEndPoint) Path() string {
-	return "GET /account/{id}"
+	return "GET /accounts/{id}"
 }
 func (a AccountGetByIdEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
 	if r.Method != http.MethodGet {
