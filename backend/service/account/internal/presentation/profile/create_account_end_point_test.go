@@ -26,19 +26,19 @@ func TestEndPoint__HandleRequest(t *testing.T) {
 		{
 			Name:            "Create Account With user_name field only, VALID",
 			DoesExpectError: false,
-			TestRequest:     httptest.NewRequest("POST", createAccountEndPoint.Path(), bytes.NewReader([]byte(`{"user_name":"ilkerciblak"}`))),
+			TestRequest:     httptest.NewRequest("POST", "/accounts", bytes.NewReader([]byte(`{"user_name":"ilkerciblak"}`))),
 			ExpectedError:   nil,
 		},
 		{
 			Name:            "Create Account With wrong fields, INVALID with 422",
 			DoesExpectError: true,
-			TestRequest:     httptest.NewRequest("POST", createAccountEndPoint.Path(), bytes.NewReader([]byte(`{"username":"ilkerciblak"}`))),
+			TestRequest:     httptest.NewRequest("POST", "/accounts", bytes.NewReader([]byte(`{"username":"ilkerciblak"}`))),
 			ExpectedError:   coredomain.RequestValidationError,
 		},
 		{
 			Name:            "Create Account With wrong fields, INVALID with 400",
 			DoesExpectError: true,
-			TestRequest:     httptest.NewRequest("POST", createAccountEndPoint.Path(), bytes.NewReader([]byte(`{"username":"ilkerciblak}`))),
+			TestRequest:     httptest.NewRequest("POST", "/accounts", bytes.NewReader([]byte(`{"username":"ilkerciblak}`))),
 			ExpectedError:   coredomain.BadRequest,
 		},
 	}
@@ -50,7 +50,7 @@ func TestEndPoint__HandleRequest(t *testing.T) {
 				testResponseWriter := httptest.NewRecorder()
 				testResponseRecorder := TestResponseRecorder{
 					ResponseWriter: testResponseWriter,
-					// Context:        ctx,
+					Context:        ctx,
 				}
 
 				a, err := createAccountEndPoint.HandleRequest(testResponseRecorder.ResponseWriter, c.TestRequest)

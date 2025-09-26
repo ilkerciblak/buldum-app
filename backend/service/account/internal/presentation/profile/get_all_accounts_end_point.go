@@ -14,7 +14,7 @@ type GetAllProfilesEndPoint struct {
 }
 
 func (e GetAllProfilesEndPoint) Path() string {
-	return "GET /account"
+	return "GET /accounts"
 }
 
 func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {

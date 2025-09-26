@@ -15,7 +15,7 @@ type CreateAccountEndPoint struct {
 }
 
 func (c CreateAccountEndPoint) Path() string {
-	return "POST /account"
+	return "POST /accounts"
 }
 
 func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
