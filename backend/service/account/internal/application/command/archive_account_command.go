@@ -11,7 +11,18 @@ import (
 )
 
 type ArchiveAccountCommand struct {
-	Id uuid.UUID `json:"user_id"`
+	Id uuid.UUID `path:"id"`
+}
+
+func NewArchiveAccountCommand(m map[string]string) (*ArchiveAccountCommand, error) {
+	id, err := uuid.Parse(m["id"])
+	if err != nil {
+		return nil, err
+	}
+
+	return &ArchiveAccountCommand{
+		Id: id,
+	}, nil
 }
 
 func (c ArchiveAccountCommand) Handler(r repository.IAccountRepository, ctx context.Context) coredomain.IApplicationError {
