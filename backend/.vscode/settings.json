@@ -1,0 +1,4 @@
+{
+    "git.openRepositoryInParentFolders": "prompt",
+    "git.detectSubmodules": true
+}

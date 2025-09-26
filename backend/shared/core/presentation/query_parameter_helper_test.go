@@ -1,6 +1,7 @@
 package corepresentation_test
 
 import (
+	"bytes"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
 func TestCorePresentation__PathValuesMapperTest(t *testing.T) {
@@ -235,11 +237,12 @@ func TestCorePresentation__QueryValuesAndPathValuesMapper(t *testing.T) {
 		},
 		{
 			Name:  "Multiple Path and  Multiple Query Parameter with Arrays Should OK",
-			Input: httptest.NewRequest("GET", "/test/testValue/accounts/testValue2?foo=bar&foo=zar", http.NoBody),
+			Input: httptest.NewRequest("GET", "/test/testValue/accounts/testValue2?foo=bar&foo=zar", bytes.NewReader([]byte(`{"bar":"test"}`))),
 			targetType: struct {
 				TestVal  string   `path:"test_val"`
 				TestVal2 string   `path:"test_val2"`
 				Foo      []string `query:"foo"`
+				Bar      string   `json:"bar"`
 			}{},
 			ExpectedOutput: map[string]interface{}{
 				"test_val":  "testValue",
@@ -263,6 +266,16 @@ func TestCorePresentation__QueryValuesAndPathValuesMapper(t *testing.T) {
 				output := corepresentation.QueryAndPathParametersMapper(c.Input, c.targetType)
 				if !maps.EqualFunc(c.ExpectedOutput, output, reflect.DeepEqual) {
 					t.Fatalf("Output Not Satisfies Expectations\nExpects %v\nGot %v", c.ExpectedOutput, output)
+				}
+
+				if c.Input.Body != nil {
+					a, _ := jsonmapper.DecodeRequestBody[struct {
+						TestVal  string   `path:"test_val"`
+						TestVal2 string   `path:"test_val2"`
+						Foo      []string `query:"foo"`
+						Bar      string   `json:"bar"`
+					}](c.Input)
+					t.Log(a.TestVal)
 				}
 
 			},

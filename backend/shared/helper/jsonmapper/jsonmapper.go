@@ -36,3 +36,12 @@ func EncodeDecodeMapToStruct[T interface{}](m map[string]interface{}) (target T,
 
 	return target, nil
 }
+
+func DecodeRequestBodyWithTarget(r *http.Request, target any) error {
+	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	if err := decoder.Decode(&target); err != nil {
+		return err
+	}
+	return nil
+}
