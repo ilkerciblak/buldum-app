@@ -211,3 +211,61 @@ func TestCorePresentation__QueryValuesWithCommonQueryParameters(t *testing.T) {
 		)
 	}
 }
+
+func TestCorePresentation__QueryValuesAndPathValuesMapper(t *testing.T) {
+	cases := []struct {
+		Name             string
+		Input            *http.Request
+		targetType       interface{}
+		ExpectedOutput   map[string]interface{}
+		DoesExpectsError bool
+	}{
+		{
+			Name:  "Single Path and  Single Query Parameter Should OK",
+			Input: httptest.NewRequest("GET", "/test/testValue/accounts/testValue2?foo=bar", http.NoBody),
+			targetType: struct {
+				TestVal string `path:"test_val"`
+				Foo     string `query:"foo"`
+			}{},
+			ExpectedOutput: map[string]interface{}{
+				"test_val": "testValue",
+				"foo":      "bar",
+			},
+			DoesExpectsError: false,
+		},
+		{
+			Name:  "Multiple Path and  Multiple Query Parameter with Arrays Should OK",
+			Input: httptest.NewRequest("GET", "/test/testValue/accounts/testValue2?foo=bar&foo=zar", http.NoBody),
+			targetType: struct {
+				TestVal  string   `path:"test_val"`
+				TestVal2 string   `path:"test_val2"`
+				Foo      []string `query:"foo"`
+			}{},
+			ExpectedOutput: map[string]interface{}{
+				"test_val":  "testValue",
+				"test_val2": "testValue2",
+				"foo":       []string{"bar", "zar"},
+			},
+			DoesExpectsError: false,
+		},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/test/{test_val}/accounts/{test_val2}", func(w http.ResponseWriter, r *http.Request) {})
+
+	for _, c := range cases {
+		t.Run(
+			c.Name,
+			func(t *testing.T) {
+				rr := httptest.NewRecorder()
+				mux.ServeHTTP(rr, c.Input)
+
+				output := corepresentation.QueryAndPathParametersMapper(c.Input, c.targetType)
+				if !maps.EqualFunc(c.ExpectedOutput, output, reflect.DeepEqual) {
+					t.Fatalf("Output Not Satisfies Expectations\nExpects %v\nGot %v", c.ExpectedOutput, output)
+				}
+
+			},
+		)
+	}
+}

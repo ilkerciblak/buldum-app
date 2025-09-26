@@ -7,6 +7,21 @@ import (
 	"strconv"
 )
 
+func QueryAndPathParametersMapper(r *http.Request, target any) map[string]interface{} {
+	valMap := make(map[string]interface{})
+
+	for k, val := range QueryParametersMapper(r, target) {
+		valMap[k] = val
+	}
+
+	for k, val := range PathValuesMapper(r, target) {
+		valMap[k] = val
+	}
+
+	return valMap
+
+}
+
 func PathValuesMapper(r *http.Request, target any) map[string]string {
 	valMap := make(map[string]string)
 	v := reflect.ValueOf(target)
@@ -63,75 +78,6 @@ func QueryParametersMapper(r *http.Request, target any) map[string]interface{} {
 
 	return valMap
 }
-
-// QueryParametersMapper maps HTTP query parameters to a struct based on "query" tags
-// It returns a map where keys are the query parameter names and values are the parsed values
-// func QueryParametersMapper(r *http.Request, target any) map[string]interface{} {
-// 	valMap := make(map[string]interface{})
-// 	v := reflect.ValueOf(target)
-
-// 	// Handle pointer to struct
-// 	if v.Kind() == reflect.Ptr {
-// 		v = v.Elem()
-// 	}
-
-// 	// Only process structs
-// 	if v.Kind() != reflect.Struct {
-// 		return valMap
-// 	}
-
-// 	t := v.Type()
-
-// 	for i := 0; i < v.NumField(); i++ {
-// 		field := t.Field(i)
-// 		fieldValue := v.Field(i)
-
-// 		// Handle nested structs recursively
-// 		if field.Type.Kind() == reflect.Struct {
-// 			nestedMap := QueryParametersMapper(r, fieldValue.Interface())
-// 			// Merge nested map into current map
-// 			for k, v := range nestedMap {
-// 				valMap[k] = v
-// 			}
-// 			continue
-// 		}
-
-// 		// Handle pointer to struct
-// 		if field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct {
-// 			if !fieldValue.IsNil() {
-// 				nestedMap := QueryParametersMapper(r, fieldValue.Interface())
-// 				for k, v := range nestedMap {
-// 					valMap[k] = v
-// 				}
-// 			}
-// 			continue
-// 		}
-
-// 		tag := field.Tag.Get("query")
-// 		if tag == "" {
-// 			continue
-// 		}
-
-// 		// Parse tag options (e.g., "name,required" or "name,omitempty")
-// 		tagParts := strings.Split(tag, ",")
-// 		queryKey := tagParts[0]
-
-// 		queryValues := r.URL.Query()[queryKey]
-// 		if len(queryValues) == 0 || queryValues[0] == "" {
-// 			continue
-// 		}
-
-// 		// Handle different field types
-// 		switch field.Type.Kind() {
-// 		case reflect.Slice, reflect.Array:
-// 			valMap[queryKey] = convertSliceValues(queryValues, field.Type.Elem())
-// 		default:
-// 			valMap[queryKey] = convertSingleValue(queryValues[0], field.Type)
-// 		}
-// 	}
-
-// 	return valMap
-// }
 
 func convertSingleValue(value string, targetType reflect.Type) interface{} {
 	switch targetType.Kind() {
