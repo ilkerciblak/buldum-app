@@ -12,9 +12,10 @@ import (
 	"syscall"
 
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
-	"github.com/ilkerciblak/buldum-app/api/middleware"
+	api_middlewares "github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	presentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	"github.com/ilkerciblak/buldum-app/shared/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -58,8 +59,10 @@ func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB) *h
 
 	a.ServeMux = http.NewServeMux()
 
+	apiHandler := middleware.CreateMiddlewareChain(api_middlewares.PanicRecoverMiddleware{}, api_middlewares.LoggingMiddleware{})
+
 	for _, f := range domainRegisterars {
-		a.ServeMux.Handle("/api/", http.StripPrefix("/api", f(a.DbConnection)))
+		a.ServeMux.HandleFunc("/api/", apiHandler(http.StripPrefix("/api", f(a.DbConnection)).ServeHTTP))
 	}
 
 	a.Server = &http.Server{
@@ -77,24 +80,6 @@ func (a *ApiServer) StartHttpServer(errChan chan<- error, wg *sync.WaitGroup) {
 		errChan <- a.Server.ListenAndServe()
 		defer wg.Done()
 	}()
-}
-
-func (a *ApiServer) registerHandlers(mux *http.ServeMux) error {
-
-	// mux.HandleFunc(
-	// 	HealthCheckEndPoint{}.Path(),
-	// 	middleware.ChainMiddlewaresWithEndpoint(&HealthCheckEndPoint{}, &middleware.LoggingMiddleware{}),
-	// )
-	panicChain := middleware.CreateMiddlewareChain(&middleware.PanicRecoverMiddleware{})
-
-	mux.HandleFunc(
-		HealthCheckEndPoint{}.Path(),
-		panicChain(HealthCheckEndPoint{}, middleware.LoggingMiddleware{}),
-	)
-
-	// account.RegisterAccountDomain(mux)
-
-	return nil
 }
 
 type HealthCheckEndPoint struct {

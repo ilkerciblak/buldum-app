@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
@@ -81,7 +80,7 @@ func TestEndPoint__UpdateAccount(t *testing.T) {
 				req := c.TestRequest()
 				mux := http.NewServeMux()
 				testResponseWriter := httptest.NewRecorder()
-				mux.HandleFunc(endpoint.Path(), middleware.ChainMiddlewaresWithEndpoint(endpoint))
+				mux.HandleFunc(endpoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(endpoint))
 				mux.ServeHTTP(testResponseWriter, req.Clone(t.Context()))
 
 				if testResponseWriter.Result().StatusCode != c.ExpectedStatusCode {

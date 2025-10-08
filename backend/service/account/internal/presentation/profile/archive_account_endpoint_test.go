@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
+	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 func TestEndPoint__ArchiveAccountEndPoint(t *testing.T) {
@@ -19,7 +19,7 @@ func TestEndPoint__ArchiveAccountEndPoint(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(archiveAccountEndPoint.Path(), middleware.ChainMiddlewaresWithEndpoint(archiveAccountEndPoint))
+	mux.HandleFunc(archiveAccountEndPoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(archiveAccountEndPoint))
 
 	cases := []struct {
 		Name            string
