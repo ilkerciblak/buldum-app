@@ -46,6 +46,10 @@ func (m *MockAccountRepository) Create(ctx context.Context, p *model.Profile) er
 	return nil
 }
 func (m *MockAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error {
+	if userId == uuid.Max {
+		return errors.New("Test Error")
+	}
+
 	return nil
 }
 func (m *MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) error {

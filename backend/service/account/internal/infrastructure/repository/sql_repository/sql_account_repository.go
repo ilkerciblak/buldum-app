@@ -70,8 +70,8 @@ func (s SqlAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *m
 	upd := account_db.UpdateProfileParams{
 		ID:        userId,
 		UserName:  p.Username,
-		AvatarUrl: sql.NullString{String: p.AvatarUrl},
-		UpdatedAt: sql.NullTime{Time: p.UpdatedAt},
+		AvatarUrl: sql.NullString{String: p.AvatarUrl, Valid: true},
+		UpdatedAt: sql.NullTime{Time: p.UpdatedAt, Valid: true},
 	}
 	if err := s.Db.UpdateProfile(ctx, upd); err != nil {
 		if err == sql.ErrNoRows {

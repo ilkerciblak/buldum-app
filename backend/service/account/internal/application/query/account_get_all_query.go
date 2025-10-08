@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
@@ -14,28 +15,72 @@ type AccountGetAllQuery struct {
 	repository.ProfileGetAllQueryFilter
 }
 
-func NewAccountGetAllQuery(m map[string]any) (*AccountGetAllQuery, error) {
-	whiteList := map[string]map[string]bool{
-		"sort": {
-			"user_name":  true,
-			"created_at": true,
-			"updated_at": true,
-			"id":         true,
-		},
+type WithParamFunc func(queryParams *AccountGetAllQuery) *AccountGetAllQuery
+
+func SetLimit(limit string) WithParamFunc {
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		application.SetLimit(limit)(&queryParams.CommonQueryParameters)
+		return queryParams
 	}
-	cqp, err := application.NewCommonQueryParameters(m, whiteList)
-	if err != nil {
-		return nil, err
+}
+
+func SetPage(page string) WithParamFunc {
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		application.SetPage(page)(&queryParams.CommonQueryParameters)
+		return queryParams
 	}
-	filter, err := repository.NewAccountGetAllQueryFilter(m)
-	if err != nil {
-		return nil, err
+}
+
+func SetOrderBy(orderBy string) WithParamFunc {
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		application.SetOrder(orderBy)(&queryParams.CommonQueryParameters)
+		return queryParams
+	}
+}
+
+func SetSortBy(sortBy string) WithParamFunc {
+	whiteList := map[string]bool{
+		"user_name":  true,
+		"created_at": true,
+		"updated_at": true,
+		"id":         true,
+	}
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		application.SetSortBy(sortBy, whiteList)(&queryParams.CommonQueryParameters)
+		return queryParams
+	}
+}
+
+func SetUsername(username string) WithParamFunc {
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		queryParams.Username = username
+		return queryParams
+	}
+}
+func SetIsArchived(isArchived string) WithParamFunc {
+	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
+		if k, err := strconv.ParseBool(isArchived); err == nil {
+			queryParams.IsArchived = k
+		}
+		return queryParams
+	}
+}
+
+func DefaultAccountGetAllQuery() *AccountGetAllQuery {
+	return &AccountGetAllQuery{
+		CommonQueryParameters:    *application.NewCommonQueryParameters(),
+		ProfileGetAllQueryFilter: *repository.DefaultAccountGetAllQueryFilter(),
+	}
+}
+
+func NewAccountGetAllQuery(setters ...WithParamFunc) (*AccountGetAllQuery, error) {
+	query := DefaultAccountGetAllQuery()
+
+	for _, setter := range setters {
+		setter(query)
 	}
 
-	return &AccountGetAllQuery{
-		CommonQueryParameters:    *cqp,
-		ProfileGetAllQueryFilter: *filter,
-	}, nil
+	return query, nil
 }
 
 func (a AccountGetAllQuery) Handler(r repository.IAccountRepository, ctx context.Context) ([]*model.Profile, coredomain.IApplicationError) {

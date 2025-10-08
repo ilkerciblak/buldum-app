@@ -1,4 +1,4 @@
-package jsonmapper
+package jsonmapper_test
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"reflect"
 
 	"testing"
+
+	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
 func TestJsonMapper_DecodeRequestBody(t *testing.T) {
@@ -47,7 +49,8 @@ func TestJsonMapper_DecodeRequestBody(t *testing.T) {
 		t.Run(
 			tc.Name,
 			func(t *testing.T) {
-				output, err := DecodeRequestBody[testStruct](tc.Input)
+				var request testStruct
+				err := jsonmapper.DecodeRequestBody(tc.Input, &request)
 				if tc.DoesExpectError {
 					if err == nil {
 						t.Fatalf("Test was expecting an error to occur")
@@ -58,8 +61,8 @@ func TestJsonMapper_DecodeRequestBody(t *testing.T) {
 					}
 				}
 
-				if !reflect.DeepEqual(tc.Expected, output) && !tc.DoesExpectError {
-					t.Fatalf("Expected output and result not comparable or deeply equal\nGot %v\tExpected %v", output, tc.Expected)
+				if !reflect.DeepEqual(tc.Expected, request) && !tc.DoesExpectError {
+					t.Fatalf("Expected output and result not comparable or deeply equal\nGot %v\tExpected %v", request, tc.Expected)
 				}
 			},
 		)
@@ -78,7 +81,7 @@ func TestJSONMapper__EncodeDecodeMapToStruct(t *testing.T) {
 		"age":  3,
 	}
 
-	output, err := EncodeDecodeMapToStruct[testStruct](testMap)
+	output, err := jsonmapper.EncodeDecodeMapToStruct[testStruct](testMap)
 	if err != nil {
 
 		t.Fatalf("%v", err)

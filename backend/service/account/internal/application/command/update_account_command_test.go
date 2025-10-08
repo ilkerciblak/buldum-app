@@ -2,6 +2,7 @@ package command_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,8 +13,6 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
-	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
-	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
 )
 
 func TestAccountCommands__UpdateAccountCommandValidate(t *testing.T) {
@@ -75,11 +74,23 @@ func TestAccountCommands__UpdateAccountCommandHandler(t *testing.T) {
 			func(t *testing.T) {
 				mux := http.NewServeMux()
 				mux.HandleFunc("PUT /accounts/{user_id}", func(w http.ResponseWriter, r *http.Request) {
-					m := corepresentation.QueryAndPathParametersMapper(r, command.UpdateAccountCommand{})
-					c, _ := command.NewUpdateAccountCommand(m)
-					_ = jsonmapper.DecodeRequestBodyWithTarget(r, c)
 
-					err := c.Handler(&mock.MockAccountRepository{}, r.Context())
+					var updateAccountRequest struct {
+						Username  string `json:"user_name"`
+						AvatarUrl string `json:"avatar_url"`
+					}
+					defer r.Body.Close()
+					_ = json.NewDecoder(r.Body).Decode(&updateAccountRequest)
+
+					userid := r.PathValue("user_id")
+
+					com := command.UpdateAccountCommand{
+						Username:  updateAccountRequest.Username,
+						AvatarUrl: updateAccountRequest.AvatarUrl,
+					}
+					com.SetUserID(userid)
+
+					err := com.Handler(&mock.MockAccountRepository{}, r.Context())
 
 					if tc.DoesExpectError {
 						if err == nil {

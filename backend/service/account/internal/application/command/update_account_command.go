@@ -11,20 +11,19 @@ import (
 )
 
 type UpdateAccountCommand struct {
-	UserId    uuid.UUID `path:"user_id"`
-	Username  string    `json:"user_name"`
-	AvatarUrl string    `json:"avatar_url"`
+	UserId    uuid.UUID
+	Username  string `json:"username"`
+	AvatarUrl string `json:"avatar_url,omitempty"`
 }
 
-func NewUpdateAccountCommand(m map[string]interface{}) (*UpdateAccountCommand, error) {
-	userId, err := uuid.Parse(m["user_id"].(string))
+func (c *UpdateAccountCommand) SetUserID(id string) error {
+	userid, err := uuid.Parse(id)
 	if err != nil {
-		return nil, err
+		return coredomain.BadRequest.WithMessage(err)
 	}
+	c.UserId = userid
 
-	return &UpdateAccountCommand{
-		UserId: userId,
-	}, nil
+	return nil
 }
 
 func (c *UpdateAccountCommand) Validate() (*UpdateAccountCommand, error) {

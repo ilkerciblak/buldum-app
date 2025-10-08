@@ -27,37 +27,36 @@ func NewProfile(username, avatarUrl string) *Profile {
 	}
 }
 
-type WithUpdateFunc func(p *Profile) (*Profile, error)
+type WithUpdateFunc func(p *Profile) error
 
 func UpdateUsername(val string) WithUpdateFunc {
-	return func(p *Profile) (*Profile, error) {
+	return func(p *Profile) error {
 		p.Username = val
-		return p, nil
+		return nil
 	}
 }
 
 func UpdateAvatarUrl(val string) WithUpdateFunc {
-	return func(p *Profile) (*Profile, error) {
+	return func(p *Profile) error {
 		p.AvatarUrl = val
-		return p, nil
+		return nil
 	}
 }
 
-func ArchiveProfile(p *Profile) (*Profile, error) {
+func ArchiveProfile(p *Profile) error {
 	if p.IsArchived {
-		return p, fmt.Errorf("Profile Already Archived")
+		return fmt.Errorf("Profile Already Archived")
 	}
 	p.IsArchived = true
-	return p, nil
+	return nil
 }
 
 func (p *Profile) UpdateProfile(fs ...WithUpdateFunc) (*Profile, error) {
 	for _, f := range fs {
-		pnew, err := f(p)
+		err := f(p)
 		if err != nil {
-			return pnew, err
+			return p, err
 		}
-		p = pnew
 	}
 	p.UpdatedAt = time.Now()
 

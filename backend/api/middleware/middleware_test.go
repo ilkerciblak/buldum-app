@@ -79,7 +79,7 @@ func (m MockEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) (pre
 		Message string `json:"message"`
 	}
 	var req request
-	req, err := jsonmapper.DecodeRequestBody[request](r)
+	err := jsonmapper.DecodeRequestBody(r, &req)
 	if err != nil {
 		rerr := &coredomain.InternalServerError
 		rerr.Message = err.Error()

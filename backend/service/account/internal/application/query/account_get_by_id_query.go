@@ -10,18 +10,17 @@ import (
 )
 
 type AccountGetByIdQuery struct {
-	Id uuid.UUID `path:"id"`
+	Id uuid.UUID
 }
 
-func NewAccountGetByIdQuery(m map[string]string) (*AccountGetByIdQuery, error) {
-
-	userId, err := uuid.Parse(m["id"])
+func NewAccountGetByIdQuery(id string) (*AccountGetByIdQuery, error) {
+	userid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
 
 	return &AccountGetByIdQuery{
-		Id: userId,
+		Id: userid,
 	}, nil
 }
 

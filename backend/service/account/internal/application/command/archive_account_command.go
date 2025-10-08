@@ -14,14 +14,14 @@ type ArchiveAccountCommand struct {
 	Id uuid.UUID `path:"id"`
 }
 
-func NewArchiveAccountCommand(m map[string]string) (*ArchiveAccountCommand, error) {
-	id, err := uuid.Parse(m["id"])
+func NewArchiveAccountCommand(id string) (*ArchiveAccountCommand, error) {
+	userid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
 
 	return &ArchiveAccountCommand{
-		Id: id,
+		Id: userid,
 	}, nil
 }
 

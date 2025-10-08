@@ -22,8 +22,9 @@ func (e ArchiveAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
 	}
 
-	m := corepresentation.PathValuesMapper(r, command.ArchiveAccountCommand{})
-	c, err := command.NewArchiveAccountCommand(m)
+	id := r.PathValue("id")
+
+	c, err := command.NewArchiveAccountCommand(id)
 	if err != nil {
 		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
 	}

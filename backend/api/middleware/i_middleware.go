@@ -45,3 +45,14 @@ func CreateMiddlewareChain(chainMiddlewares ...IMiddleware) func(endPoint corepr
 		return handlerFunc
 	}
 }
+
+func CreateAPIMiddlewareChain(handler http.Handler, middlewares ...IMiddleware) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var handlerFunc http.HandlerFunc
+		for _, middleware := range middlewares {
+			handlerFunc = middleware.Act(handler.ServeHTTP)
+		}
+
+		handlerFunc.ServeHTTP(w, r)
+	}
+}

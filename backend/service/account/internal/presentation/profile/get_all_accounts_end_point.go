@@ -21,8 +21,23 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	if r.Method != http.MethodGet {
 		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
 	}
-	queryMap := corepresentation.QueryParametersMapper(r, query.AccountGetAllQuery{})
-	q, err := query.NewAccountGetAllQuery(queryMap)
+
+	limit := r.URL.Query().Get("limit")
+	orderBy := r.URL.Query().Get("order")
+	sortBy := r.URL.Query().Get("sort")
+	page := r.URL.Query().Get("page")
+	isArchived := r.URL.Query().Get("is_archived")
+	username := r.URL.Query().Get("user_name")
+
+	q, err := query.NewAccountGetAllQuery(
+		query.SetPage(page),
+		query.SetOrderBy(orderBy),
+		query.SetLimit(limit),
+		query.SetSortBy(sortBy),
+		query.SetIsArchived(isArchived),
+		query.SetUsername(username),
+	)
+
 	if err != nil {
 		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
 	}

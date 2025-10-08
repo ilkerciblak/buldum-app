@@ -21,8 +21,9 @@ func (a AccountGetByIdEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
 	}
 
-	// id := r.PathValue("id")
-	query, err := query.NewAccountGetByIdQuery(corepresentation.PathValuesMapper(r, query.AccountGetByIdQuery{}))
+	id := r.PathValue("id")
+
+	query, err := query.NewAccountGetByIdQuery(id)
 	if err != nil {
 		return corepresentation.ApiResult[any]{}, coredomain.NotFound.WithMessage(err)
 	}

@@ -91,6 +91,7 @@ func (q *Queries) GetAllProfile(ctx context.Context, arg GetAllProfileParams) ([
 		arg.UserName,
 		arg.IsArchived,
 	)
+
 	if err != nil {
 		return nil, err
 	}

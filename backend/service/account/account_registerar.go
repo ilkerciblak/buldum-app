@@ -7,7 +7,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/api/middleware"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
-	profile "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
+	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 )
 
 func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
@@ -16,16 +16,20 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 	accountQueries := account_db.New(db)
 	accountRepository := repo.NewSqlAccountRepository(*accountQueries)
 
-	createAccountEndPoint := profile.CreateAccountEndPoint{
+	createAccountEndPoint := presentation.CreateAccountEndPoint{
 		Repository: accountRepository,
 	}
-	getAllAccountsEndPoint := profile.GetAllProfilesEndPoint{
+	getAllAccountsEndPoint := presentation.GetAllProfilesEndPoint{
 		Repository: accountRepository,
 	}
-	getAccountByIdEndPoint := profile.AccountGetByIdEndPoint{
+	getAccountByIdEndPoint := presentation.AccountGetByIdEndPoint{
 		Repository: accountRepository,
 	}
-	archiveAccountEndPoint := profile.ArchiveAccountEndPoint{
+	archiveAccountEndPoint := presentation.ArchiveAccountEndPoint{
+		Repository: accountRepository,
+	}
+
+	updateAccountEndPoint := presentation.UpdateAccountEndPoint{
 		Repository: accountRepository,
 	}
 
@@ -39,11 +43,13 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 
 	accountMux.HandleFunc(
 		getAccountByIdEndPoint.Path(),
+
 		middleware.ChainMiddlewaresWithEndpoint(
 			getAccountByIdEndPoint,
 			middleware.LoggingMiddleware{},
 		),
 	)
+
 	accountMux.HandleFunc(
 		getAllAccountsEndPoint.Path(),
 		middleware.ChainMiddlewaresWithEndpoint(
@@ -59,7 +65,13 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 			middleware.LoggingMiddleware{},
 		),
 	)
-
+	accountMux.HandleFunc(
+		updateAccountEndPoint.Path(),
+		middleware.ChainMiddlewaresWithEndpoint(
+			updateAccountEndPoint,
+			middleware.LoggingMiddleware{},
+		),
+	)
 	return accountMux
 
 }
