@@ -10,6 +10,7 @@ type IApplicationError interface {
 	GetCode() int
 	GetErrors() map[string]string
 	GetMessage() string
+	error
 }
 
 type ApplicationError struct {

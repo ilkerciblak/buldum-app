@@ -3,30 +3,28 @@ package corepresentation
 import (
 	"log"
 	"net/http"
-
-	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 type IEndPoint interface {
 	Path() string
-	HandleRequest(w http.ResponseWriter, r *http.Request) (ApiResult[any], coredomain.IApplicationError)
+	HandleRequest(w http.ResponseWriter, r *http.Request) ApiResult[any]
 }
 
 func GenerateHandlerFuncFromEndPoint(endPoint IEndPoint) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("JsonResponseHandlerMiddleware Calisti")
-		data, err := endPoint.HandleRequest(w, r)
+		result := endPoint.HandleRequest(w, r)
 
-		if err != nil {
-			RespondWithProblemDetails(w, err)
+		if result.Error != nil {
+			RespondWithProblemDetails(w, result.Error)
 			return
 		}
 
-		if data.Data != nil {
-			RespondWithJSON(w, data.Data)
+		if result.Data != nil {
+			RespondWithJSON(w, result.Data)
 			return
 		}
-		w.WriteHeader(data.StatusCode)
+		w.WriteHeader(result.StatusCode)
 		log.Printf("JsonResponseHandlerMiddleware Bitirdi")
 	}
 

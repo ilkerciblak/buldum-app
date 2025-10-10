@@ -40,7 +40,7 @@ func RespondWithErrorJson(w http.ResponseWriter, appError coredomain.IApplicatio
 
 }
 
-func RespondWithProblemDetails(w http.ResponseWriter, appError coredomain.IApplicationError) {
+func RespondWithProblemDetails(w http.ResponseWriter, appError error) {
 	w.Header().Set("Content-Type", "application/problem+json")
 
 	problemDetails := ToProblemDetails(appError)
