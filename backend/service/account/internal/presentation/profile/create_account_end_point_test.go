@@ -53,27 +53,27 @@ func TestEndPoint__HandleRequest(t *testing.T) {
 					Context:        ctx,
 				}
 
-				a, err := createAccountEndPoint.HandleRequest(testResponseRecorder.ResponseWriter, c.TestRequest)
+				res := createAccountEndPoint.HandleRequest(testResponseRecorder.ResponseWriter, c.TestRequest)
 				if c.DoesExpectError {
-					if err == nil {
+					if res.Error == nil {
 						t.Fatalf("Error Expectations was not satisfied")
 					}
 
-					if err.GetCode() != c.ExpectedError.GetCode() {
-						t.Fatalf("Error Expectations was not satisfied\nGot %v,Expected %v", err, c.ExpectedError)
+					if res.Error.(coredomain.IApplicationError).GetCode() != c.ExpectedError.GetCode() {
+						t.Fatalf("Error Expectations was not satisfied\nGot %v,Expected %v", res.Error, c.ExpectedError)
 					}
 
 				} else {
-					if err != nil {
-						t.Fatalf("Test was not expecting error but\nGot %v\nExpected %v\n", err, http.StatusCreated)
+					if res.Error != nil {
+						t.Fatalf("Test was not expecting error but\nGot %v\nExpected %v\n", res.Error, http.StatusCreated)
 					}
 
-					if a.Data != nil {
-						t.Fatalf("Response Data is not as expected, Expected no data, Got %v", a.Data)
+					if res.Data != nil {
+						t.Fatalf("Response Data is not as expected, Expected no data, Got %v", res.Data)
 					}
 
-					if a.StatusCode != http.StatusCreated {
-						t.Fatalf("Response Status Code is not as expected, Expects %d, Got %d", http.StatusCreated, a.StatusCode)
+					if res.StatusCode != http.StatusCreated {
+						t.Fatalf("Response Status Code is not as expected, Expects %d, Got %d", http.StatusCreated, res.StatusCode)
 					}
 				}
 

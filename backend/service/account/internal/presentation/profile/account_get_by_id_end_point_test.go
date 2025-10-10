@@ -54,21 +54,21 @@ func TestEndPoint__GetById(t *testing.T) {
 					Repository: &mock.MockAccountRepository{},
 				}
 
-				data, err := endPoint.HandleRequest(httptest.NewRecorder(), c.Input)
+				result := endPoint.HandleRequest(httptest.NewRecorder(), c.Input)
 
 				if c.DoesExpectError {
-					if err == nil {
+					if result.Error == nil {
 						t.Fatalf("Error Expectations Not full-filled")
 					}
-					if c.ExpectedError.GetCode() != err.GetCode() {
-						t.Fatalf("Error Expectations Not full-filled\nGot %v\nExpects %v", err, c.ExpectedError)
+					if c.ExpectedError.GetCode() != result.Error.(coredomain.IApplicationError).GetCode() {
+						t.Fatalf("Error Expectations Not full-filled\nGot %v\nExpects %v", result.Error, c.ExpectedError)
 					}
 				} else {
-					if err != nil {
-						t.Fatalf("Test was Not Expecting Error But Got %v", err)
+					if result.Error != nil {
+						t.Fatalf("Test was Not Expecting Error But Got %v", result.Error)
 					}
-					if c.ExpectedOutput.StatusCode != data.StatusCode {
-						t.Fatalf("Output Error\nExpects %v,Got %v", c.ExpectedOutput.Data, data.Data)
+					if c.ExpectedOutput.StatusCode != result.StatusCode {
+						t.Fatalf("Output Error\nExpects %v,Got %v", c.ExpectedOutput.Data, result.Data)
 
 					}
 					// if !strings.EqualFold(c.ExpectedOutput.Data.Username, data) {

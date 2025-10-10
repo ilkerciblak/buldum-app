@@ -59,26 +59,26 @@ func TestEndPoint__GetAllProfiles(t *testing.T) {
 					Repository: repo,
 				}
 
-				data, err := endPoint.HandleRequest(httptest.NewRecorder(), c.TestRequest)
+				res := endPoint.HandleRequest(httptest.NewRecorder(), c.TestRequest)
 				if c.DoesExpectError {
-					if err == nil {
+					if res.Error == nil {
 						t.Fatalf("Test Error Expectation was not full-filled")
 					}
 
-					if err.GetCode() != c.ExpectedError.GetCode() {
-						t.Fatalf("Test Error Expectation was not full-filled\nGot %v\nExpect %v", err, c.ExpectedError)
+					if res.Error.(coredomain.IApplicationError).GetCode() != c.ExpectedError.GetCode() {
+						t.Fatalf("Test Error Expectation was not full-filled\nGot %v\nExpect %v", res.Error, c.ExpectedError)
 					}
 				} else {
-					if err != nil {
-						t.Fatalf("Test Was Not Expecting Error But Got %v", err)
+					if res.Error != nil {
+						t.Fatalf("Test Was Not Expecting Error But Got %v", res.Error)
 					}
 
-					if reflect.DeepEqual(data, c.ExpectedOutput) {
-						t.Fatalf("Output Not Satisfied\nGot%v\nExpects%v\n", data.Data, c.ExpectedOutput.Data)
+					if reflect.DeepEqual(res.Data, c.ExpectedOutput) {
+						t.Fatalf("Output Not Satisfied\nGot%v\nExpects%v\n", res.Data, c.ExpectedOutput.Data)
 					}
 
-					if data.StatusCode != c.ExpectedOutput.StatusCode {
-						t.Fatalf("Expected Status Code %v, Got %v", c.ExpectedOutput.StatusCode, data.StatusCode)
+					if res.StatusCode != c.ExpectedOutput.StatusCode {
+						t.Fatalf("Expected Status Code %v, Got %v", c.ExpectedOutput.StatusCode, res.StatusCode)
 					}
 				}
 

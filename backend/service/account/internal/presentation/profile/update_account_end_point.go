@@ -17,29 +17,29 @@ type UpdateAccountEndPoint struct {
 func (e UpdateAccountEndPoint) Path() string {
 	return "PUT /accounts/{id}"
 }
-func (e UpdateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
+func (e UpdateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) corepresentation.ApiResult[any] {
 
 	if r.Method != http.MethodPut {
-		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
+		return *corepresentation.NewErrorResult(coredomain.MethodNotAllowed)
 	}
 
 	var cmd command.UpdateAccountCommand
 
 	if err := jsonmapper.DecodeRequestBody(r, &cmd); err != nil {
-		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
+		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
 	if err := cmd.SetUserID(r.PathValue("id")); err != nil {
 
-		return corepresentation.ApiResult[any]{}, coredomain.InternalServerError.WithMessage(err)
+		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
 	if err := cmd.Handler(e.Repository, r.Context()); err != nil {
-		return corepresentation.ApiResult[any]{}, err
+		return *corepresentation.NewErrorResult(err)
 	}
 
 	return corepresentation.ApiResult[any]{
 		Data:       nil,
 		StatusCode: http.StatusNoContent,
-	}, nil
+	}
 }

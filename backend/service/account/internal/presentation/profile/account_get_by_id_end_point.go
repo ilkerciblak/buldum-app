@@ -16,21 +16,24 @@ type AccountGetByIdEndPoint struct {
 func (a AccountGetByIdEndPoint) Path() string {
 	return "GET /accounts/{id}"
 }
-func (a AccountGetByIdEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
+func (a AccountGetByIdEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) corepresentation.ApiResult[any] {
 	if r.Method != http.MethodGet {
-		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
+		return *corepresentation.NewErrorResult(coredomain.MethodNotAllowed)
 	}
 
 	id := r.PathValue("id")
 
 	query, err := query.NewAccountGetByIdQuery(id)
 	if err != nil {
-		return corepresentation.ApiResult[any]{}, coredomain.NotFound.WithMessage(err)
+		return *corepresentation.NewErrorResult(coredomain.NotFound.WithMessage(err))
 	}
 
 	data, err2 := query.Handler(a.Repository, r.Context())
 	if err2 != nil {
-		return corepresentation.ApiResult[any]{}, err2
+		return *corepresentation.NewErrorResult(err2)
 	}
-	return corepresentation.ApiResult[any]{Data: data, StatusCode: 200}, nil
+	return corepresentation.ApiResult[any]{
+		Data:       data,
+		StatusCode: 200,
+	}
 }

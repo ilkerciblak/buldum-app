@@ -34,7 +34,7 @@ func (c *CreateAccountCommand) Handler(r repository.IAccountRepository, ctx cont
 		return err
 	}
 
-	// Check if any userrname conflicts
+	// Check if any username conflicts
 
 	account := model.NewProfile(c.Username, c.AvatarUrl)
 

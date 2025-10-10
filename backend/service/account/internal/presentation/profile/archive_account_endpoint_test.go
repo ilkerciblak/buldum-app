@@ -60,27 +60,28 @@ func TestEndPoint__ArchiveAccountEndPoint(t *testing.T) {
 			func(t *testing.T) {
 				testResponseWriter := httptest.NewRecorder()
 				mux.ServeHTTP(testResponseWriter, c.TestRequest)
-				a, err := archiveAccountEndPoint.HandleRequest(testResponseWriter, c.TestRequest)
+				result := archiveAccountEndPoint.HandleRequest(testResponseWriter, c.TestRequest)
+
 				if c.DoesExpectError {
-					if err == nil {
+					if result.Error == nil {
 						t.Fatalf("Error Expectations was not satisfied")
 					}
 
-					if err.GetCode() != c.ExpectedError.GetCode() {
-						t.Fatalf("Error Expectations was not satisfied\nGot %v\n Expected %v", err, c.ExpectedError)
+					if result.Error.(coredomain.IApplicationError).GetCode() != c.ExpectedError.GetCode() {
+						t.Fatalf("Error Expectations was not satisfied\nGot %v\n Expected %v", result.Error, c.ExpectedError)
 					}
 
 				} else {
-					if err != nil {
-						t.Fatalf("Test was not expecting error but\nGot %v\nExpected %v\n", err, http.StatusCreated)
+					if result.Error != nil {
+						t.Fatalf("Test was not expecting error but\nGot %v\nExpected %v\n", result.Error, http.StatusCreated)
 					}
 
-					if a.Data != nil {
-						t.Fatalf("Response Data is not as expected, Expected no data, Got %v", a.Data)
+					if result.Data != nil {
+						t.Fatalf("Response Data is not as expected, Expected no data, Got %v", result.Data)
 					}
 
-					if a.StatusCode != http.StatusNoContent {
-						t.Fatalf("Response Status Code is not as expected, Expects %d, Got %d", http.StatusCreated, a.StatusCode)
+					if result.StatusCode != http.StatusNoContent {
+						t.Fatalf("Response Status Code is not as expected, Expects %d, Got %d", http.StatusCreated, result.StatusCode)
 					}
 				}
 			},

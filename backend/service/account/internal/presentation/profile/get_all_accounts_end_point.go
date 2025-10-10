@@ -17,9 +17,9 @@ func (e GetAllProfilesEndPoint) Path() string {
 	return "GET /accounts"
 }
 
-func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) (corepresentation.ApiResult[any], coredomain.IApplicationError) {
+func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) corepresentation.ApiResult[any] {
 	if r.Method != http.MethodGet {
-		return corepresentation.ApiResult[any]{}, coredomain.MethodNotAllowed
+		return *corepresentation.NewErrorResult(coredomain.MethodNotAllowed)
 	}
 
 	limit := r.URL.Query().Get("limit")
@@ -39,17 +39,17 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	)
 
 	if err != nil {
-		return corepresentation.ApiResult[any]{}, coredomain.BadRequest.WithMessage(err)
+		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
 	data, handlerErr := q.Handler(e.Repository, r.Context())
 	if handlerErr != nil {
-		return corepresentation.ApiResult[any]{}, handlerErr
+		return *corepresentation.NewErrorResult(handlerErr)
 	}
 
 	return corepresentation.ApiResult[any]{
 		Data:       data,
 		StatusCode: http.StatusOK,
-	}, nil
+	}
 
 }
