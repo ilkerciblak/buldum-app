@@ -8,10 +8,11 @@ import (
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	"github.com/ilkerciblak/buldum-app/shared/logging"
 	"github.com/ilkerciblak/buldum-app/shared/middleware"
 )
 
-func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
+func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger) *http.ServeMux {
 
 	accountMux := http.NewServeMux()
 	accountQueries := account_db.New(db)
@@ -19,6 +20,7 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 
 	createAccountEndPoint := presentation.CreateAccountEndPoint{
 		Repository: accountRepository,
+		Logger:     logger,
 	}
 	getAllAccountsEndPoint := presentation.GetAllProfilesEndPoint{
 		Repository: accountRepository,
@@ -32,12 +34,13 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 
 	updateAccountEndPoint := presentation.UpdateAccountEndPoint{
 		Repository: accountRepository,
+		Logger:     logger,
 	}
 
 	accountMux.HandleFunc(
 		createAccountEndPoint.Path(),
 		middleware.ChainMiddlewareWithEndPoint(
-			corepresentation.GenerateHandlerFuncFromEndPoint(createAccountEndPoint),
+			corepresentation.GenerateHandlerFuncFromEndPoint(createAccountEndPoint, logger),
 		),
 	)
 
@@ -45,27 +48,27 @@ func RegisterAccountDomainAPI(db *sql.DB) *http.ServeMux {
 		getAccountByIdEndPoint.Path(),
 
 		middleware.ChainMiddlewareWithEndPoint(
-			corepresentation.GenerateHandlerFuncFromEndPoint(getAccountByIdEndPoint),
+			corepresentation.GenerateHandlerFuncFromEndPoint(getAccountByIdEndPoint, logger),
 		),
 	)
 
 	accountMux.HandleFunc(
 		getAllAccountsEndPoint.Path(),
 		middleware.ChainMiddlewareWithEndPoint(
-			corepresentation.GenerateHandlerFuncFromEndPoint(getAllAccountsEndPoint),
+			corepresentation.GenerateHandlerFuncFromEndPoint(getAllAccountsEndPoint, logger),
 		),
 	)
 
 	accountMux.HandleFunc(
 		archiveAccountEndPoint.Path(),
 		middleware.ChainMiddlewareWithEndPoint(
-			corepresentation.GenerateHandlerFuncFromEndPoint(archiveAccountEndPoint),
+			corepresentation.GenerateHandlerFuncFromEndPoint(archiveAccountEndPoint, logger),
 		),
 	)
 	accountMux.HandleFunc(
 		updateAccountEndPoint.Path(),
 		middleware.ChainMiddlewareWithEndPoint(
-			corepresentation.GenerateHandlerFuncFromEndPoint(updateAccountEndPoint),
+			corepresentation.GenerateHandlerFuncFromEndPoint(updateAccountEndPoint, logger),
 		),
 	)
 	return accountMux

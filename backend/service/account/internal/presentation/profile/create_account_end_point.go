@@ -8,10 +8,12 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
+	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
 
 type CreateAccountEndPoint struct {
 	Repository repository.IAccountRepository
+	Logger     logging.ILogger
 }
 
 func (c CreateAccountEndPoint) Path() string {
@@ -26,10 +28,12 @@ func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 	var com command.CreateAccountCommand
 	err := jsonmapper.DecodeRequestBody(r, &com)
 	if err != nil {
+
 		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
 	if err := com.Handler(c.Repository, r.Context()); err != nil {
+		c.Logger.With("params", com)
 		return *corepresentation.NewErrorResult(err)
 	}
 

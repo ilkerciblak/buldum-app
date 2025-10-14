@@ -1,7 +1,9 @@
 package presentation_test
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +13,24 @@ import (
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
+
+type MockLogger struct {
+	log.Logger
+}
+
+func (m *MockLogger) DEBUG(ctx context.Context, msg string, args ...interface{}) {}
+func (m *MockLogger) INFO(ctx context.Context, msg string, args ...interface{})  {}
+func (m *MockLogger) WARN(ctx context.Context, msg string, args ...interface{})  {}
+func (m *MockLogger) ERROR(ctx context.Context, msg string, args ...interface{}) {}
+func (m *MockLogger) FATAL(ctx context.Context, msg string, args ...interface{}) {}
+func (m *MockLogger) Log(level logging.LogLevel, ctx context.Context, msg string, args ...interface{}) {
+}
+func (m *MockLogger) With(args ...any)                   {}
+func (m *MockLogger) WithGroup(name string, args ...any) {}
+func (m *MockLogger) WithContext(ctx context.Context)    {}
+func (m *MockLogger) Clear()                             {}
 
 func TestEndPoint__ArchiveAccountEndPoint(t *testing.T) {
 	archiveAccountEndPoint := presentation.ArchiveAccountEndPoint{
@@ -19,7 +38,7 @@ func TestEndPoint__ArchiveAccountEndPoint(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(archiveAccountEndPoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(archiveAccountEndPoint))
+	mux.HandleFunc(archiveAccountEndPoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(archiveAccountEndPoint, &MockLogger{}))
 
 	cases := []struct {
 		Name            string

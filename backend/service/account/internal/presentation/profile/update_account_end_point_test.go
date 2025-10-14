@@ -80,7 +80,7 @@ func TestEndPoint__UpdateAccount(t *testing.T) {
 				req := c.TestRequest()
 				mux := http.NewServeMux()
 				testResponseWriter := httptest.NewRecorder()
-				mux.HandleFunc(endpoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(endpoint))
+				mux.HandleFunc(endpoint.Path(), corepresentation.GenerateHandlerFuncFromEndPoint(endpoint, &MockLogger{}))
 				mux.ServeHTTP(testResponseWriter, req.Clone(t.Context()))
 
 				if testResponseWriter.Result().StatusCode != c.ExpectedStatusCode {

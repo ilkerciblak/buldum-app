@@ -8,10 +8,12 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
+	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
 
 type UpdateAccountEndPoint struct {
 	Repository repository.IAccountRepository
+	Logger     logging.ILogger
 }
 
 func (e UpdateAccountEndPoint) Path() string {
@@ -30,11 +32,11 @@ func (e UpdateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := cmd.SetUserID(r.PathValue("id")); err != nil {
-
 		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
 	if err := cmd.Handler(e.Repository, r.Context()); err != nil {
+		e.Logger.With("request-parameters", cmd)
 		return *corepresentation.NewErrorResult(err)
 	}
 
