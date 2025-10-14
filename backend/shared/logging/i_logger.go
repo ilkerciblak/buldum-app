@@ -33,30 +33,37 @@ func (level LogLevel) String() string {
 }
 
 type ILogger interface {
-	SetLevel(level LogLevel)
+	DEBUG(ctx context.Context, msg string, args ...interface{})
+	INFO(ctx context.Context, msg string, args ...interface{})
+	WARN(ctx context.Context, msg string, args ...interface{})
+	ERROR(ctx context.Context, msg string, args ...interface{})
+	FATAL(ctx context.Context, msg string, args ...interface{})
+	Log(level LogLevel, ctx context.Context, msg string, args ...interface{})
+
+	With(args ...any)
+	WithGroup(name string, args ...any)
 	WithContext(ctx context.Context)
-	WithField(fieldKey string, fieldValue interface{})
-	WithFields(fields map[string]interface{})
-	Log(level LogLevel, message string)
-	LogSelf(message string)
+	Clear()
 }
 
-type LogEntry struct {
-	Level        string                 `json:"level,omitempty"`
-	Service      string                 `json:"service,omitempty"`
-	Status       string                 `json:"status,omitempty"`
-	RequestID    string                 `json:"request_id,omitempty"`
-	UserId       string                 `json:"user_id,omitempty"`
-	DeviceInfo   string                 `json:"device_info,omitempty"`
-	AttemptNum   string                 `json:"attempt_num,omitempty"`
-	Timestamp    string                 `json:"timestamp,omitempty"`
-	Request      map[string]interface{} `json:"request,omitempty"`
-	Response     map[string]interface{} `json:"response,omitempty"`
-	EllapsedTime string                 `json:"ellapsed_time,omitempty"`
+type LoggerOptions struct {
+	MinLevel    LogLevel
+	JsonLogging bool
+	LoggingRate int
 }
 
-type Logger struct {
-	Service string
-	Level   LogLevel
-	LogEntry
-}
+// type LogEntry struct {
+// 	TimeStamp time.Time `json:"time_stamp"`
+// 	Level     string    `json:"level"`
+// 	Message   string    `json:"message"`
+// 	Request   struct {
+// 		Method    string    `json:"method"`
+// 		Path      string    `json:"ath"`
+// 		Query     string    `json:"query"`
+// 		UserAgent string    `json:"user_agent"`
+// 		RequestId uuid.UUID `json:"request_id"`
+// 		IpAdress  string    `json:"ip_address"`
+// 	} `json:"request"`
+// 	UserId uuid.UUID `json:"user_id"`
+
+// }

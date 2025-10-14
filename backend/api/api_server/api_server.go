@@ -15,6 +15,7 @@ import (
 	api_middlewares "github.com/ilkerciblak/buldum-app/api/middleware"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	presentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
+	"github.com/ilkerciblak/buldum-app/shared/logging"
 	"github.com/ilkerciblak/buldum-app/shared/middleware"
 	_ "github.com/lib/pq"
 )
@@ -55,14 +56,22 @@ func (a *ApiServer) GracefullShutdown(ctx context.Context, errorChan <-chan erro
 
 }
 
-func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB) *http.ServeMux) {
+func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB, logger logging.ILogger) *http.ServeMux) {
 
 	a.ServeMux = http.NewServeMux()
+	logger := logging.NewSlogger(logging.LoggerOptions{
+		MinLevel:    logging.INFO,
+		JsonLogging: true,
+	})
 
-	apiHandler := middleware.CreateMiddlewareChain(api_middlewares.PanicRecoverMiddleware{}, api_middlewares.LoggingMiddleware{})
+	loggingMiddleware := api_middlewares.LoggingMiddleware{
+		ILogger: logger,
+	}
+
+	apiHandler := middleware.CreateMiddlewareChain(&loggingMiddleware, api_middlewares.PanicRecoverMiddleware{})
 
 	for _, f := range domainRegisterars {
-		a.ServeMux.HandleFunc("/api/", apiHandler(http.StripPrefix("/api", f(a.DbConnection)).ServeHTTP))
+		a.ServeMux.Handle("/api/", apiHandler(http.StripPrefix("/api", f(a.DbConnection, logger))))
 	}
 
 	a.Server = &http.Server{
