@@ -68,6 +68,18 @@ func (m *MockAuthMiddleware) Act(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+type mockHandler struct {
+}
+
+func (m mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("EndPoint Served Its Duty")
+
+	if a, b := w.(*TestRecorderType); b {
+		a.WithContext(r.Context())
+	}
+
+}
+
 func TestSharedMiddleware__CreateMiddlewareChains(t *testing.T) {
 	mux := http.NewServeMux()
 	testRecorder := &TestRecorderType{
@@ -76,18 +88,11 @@ func TestSharedMiddleware__CreateMiddlewareChains(t *testing.T) {
 	}
 	testRequest := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-	var someChain func(http.HandlerFunc) http.HandlerFunc = middleware.CreateMiddlewareChain(&MockAuthMiddleware{}, &LogginMockMiddleware{})
+	var someChain func(http.Handler) http.Handler = middleware.CreateMiddlewareChain(&MockAuthMiddleware{}, &LogginMockMiddleware{})
 
-	next := someChain(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("EndPoint Served Its Duty")
+	next := someChain(mockHandler{})
 
-		if a, b := w.(*TestRecorderType); b {
-			a.WithContext(r.Context())
-		}
-
-	})
-
-	mux.HandleFunc("/test", next)
+	mux.Handle("/test", next)
 	mux.ServeHTTP(testRecorder, testRequest)
 
 	ctx := testRecorder.Context
