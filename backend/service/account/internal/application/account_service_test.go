@@ -8,12 +8,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	account_application "github.com/ilkerciblak/buldum-app/service/account/internal/application"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/query"
+	a_application "github.com/ilkerciblak/buldum-app/service/account/internal/application"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/domain"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
-	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
@@ -48,7 +46,7 @@ var accountList map[uuid.UUID]*model.Profile = map[uuid.UUID]*model.Profile{
 	},
 }
 
-var accountService account_application.AccountServiceInterface = account_application.AccountService(
+var accountService domain.AccountServiceInterface = a_application.AccountService(
 	MockAccountRepository{},
 	logging.NewSlogger(
 		logging.LoggerOptions{
@@ -64,22 +62,21 @@ type MockAccountRepository struct {
 
 func (m MockAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*model.Profile, error) {
 
-	for _, acc := range accountList {
-		if acc.Id == userId {
-			return acc, nil
-		}
+	model, exists := accountList[userId]
+	if !exists {
+		return nil, coredomain.NotFound
 	}
 
-	return nil, coredomain.NotFound
+	return model, nil
 
 }
-func (m MockAccountRepository) GetAll(ctx context.Context, params application.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
+func (m MockAccountRepository) GetAll(ctx context.Context, params coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
 	res := []*model.Profile{}
 	for _, account := range accountList {
 
-		if (filter.IsArchived == account.IsArchived) &&
+		if (filter.IsArchived == false || filter.IsArchived == account.IsArchived) &&
 			(filter.Username == "" || strings.Contains(account.Username, filter.Username)) &&
-			params.Limit >= len(res) {
+			params.Limit > len(res) {
 			res = append(res, account)
 		}
 	}
@@ -98,6 +95,8 @@ func (m MockAccountRepository) Create(ctx context.Context, p *model.Profile) err
 			Message: "Account With Id Already Registered",
 		}
 	}
+
+	accountList[p.Id] = p
 
 	return nil
 }
@@ -140,31 +139,75 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 
 	cases := []struct {
 		Name           string
-		Query          query.AccountGetAllQuery
+		Query          coredomain.CommonQueryParameters
+		Filter         repository.ProfileGetAllQueryFilter
 		ExpectedResult struct {
 			dataLength int
 			err        error
 		}
 		DoesExpectsError bool
-	}{}
+	}{
+		{
+			Name:   "Get All With No Query should Return 200 With All Values",
+			Query:  *coredomain.NewCommonQueryParameters(),
+			Filter: *repository.DefaultAccountGetAllQueryFilter(),
+			ExpectedResult: struct {
+				dataLength int
+				err        error
+			}{
+				dataLength: len(accountList),
+				err:        nil,
+			},
+			DoesExpectsError: false,
+		},
+		{
+			Name:   "Get All With Using Limiting Should 200 With Limited Values",
+			Query:  *coredomain.NewCommonQueryParameters(coredomain.SetLimit("1")),
+			Filter: *repository.DefaultAccountGetAllQueryFilter(),
+			ExpectedResult: struct {
+				dataLength int
+				err        error
+			}{
+				dataLength: 1,
+				err:        nil,
+			},
+			DoesExpectsError: false,
+		},
+		{
+			Name:  "Get All With Using Filtering Should 200 OK with Some Values",
+			Query: *coredomain.NewCommonQueryParameters(),
+			Filter: repository.ProfileGetAllQueryFilter{
+				Username: "ilker",
+			},
+			ExpectedResult: struct {
+				dataLength int
+				err        error
+			}{
+				dataLength: 1,
+				err:        nil,
+			},
+			DoesExpectsError: false,
+		},
+	}
 
 	for _, tc := range cases {
 		t.Run(
 			tc.Name,
 			func(t *testing.T) {
-				data, err := accountService.GetAllAccount(tc.Query, context.Background())
+				data, err := accountService.GetAllAccount(tc.Query, tc.Filter, context.Background())
 
 				if tc.DoesExpectsError {
 					if err == nil {
 						t.Fatalf("Error Expectations are Not Full-Filled")
 					}
-					if err.(*coredomain.ApplicationError).GetCode() != tc.ExpectedResult.err.(coredomain.IApplicationError).GetCode() {
+					if err.(coredomain.ApplicationError).GetCode() != tc.ExpectedResult.err.(coredomain.IApplicationError).GetCode() {
 						t.Fatalf("Error Expectations are Not Full-Filled\nExpected %v\nGot %v", tc.ExpectedResult.err, err)
 					}
 				}
 
 				if tc.ExpectedResult.dataLength != len(data) {
-					t.Fatalf("Expected Result with %v data\nGot %v", tc.ExpectedResult.dataLength, data)
+					t.Log(data)
+					t.Fatalf("Expected Result with %v data\nGot %v", tc.ExpectedResult.dataLength, len(data))
 				}
 
 			},
@@ -175,13 +218,38 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 func TestApplicationLayer__TestGetById(t *testing.T) {
 	cases := []struct {
 		Name           string
-		Input          query.AccountGetByIdQuery
+		Input          uuid.UUID
 		ExpectedResult struct {
 			ResultId uuid.UUID
 			err      error
 		}
 		DoesExpectsError bool
-	}{}
+	}{
+		{
+			Name:  "Should 200 OK With Related Value",
+			Input: id1,
+			ExpectedResult: struct {
+				ResultId uuid.UUID
+				err      error
+			}{
+				id1,
+				nil,
+			},
+			DoesExpectsError: false,
+		},
+		{
+			Name:  "Should 404 Not Found",
+			Input: uuid.New(),
+			ExpectedResult: struct {
+				ResultId uuid.UUID
+				err      error
+			}{
+				uuid.UUID{},
+				coredomain.NotFound,
+			},
+			DoesExpectsError: true,
+		},
+	}
 
 	for _, tc := range cases {
 		t.Run(
@@ -193,12 +261,12 @@ func TestApplicationLayer__TestGetById(t *testing.T) {
 					if err == nil {
 						t.Fatalf("Error Expectations are Not Full-Filled")
 					}
-					if err.(*coredomain.ApplicationError).GetCode() != tc.ExpectedResult.err.(coredomain.IApplicationError).GetCode() {
+					if err.(coredomain.ApplicationError).GetCode() != tc.ExpectedResult.err.(coredomain.IApplicationError).GetCode() {
 						t.Fatalf("Error Expectations are Not Full-Filled\nExpected %v\nGot %v", tc.ExpectedResult.err, err)
 					}
 				}
 
-				if tc.ExpectedResult.ResultId != data.Id {
+				if !tc.DoesExpectsError && (tc.ExpectedResult.ResultId != data.Id) {
 					t.Fatalf("Expected Id %v, Got %v", tc.ExpectedResult.ResultId, data.Id)
 				}
 			},
@@ -209,10 +277,26 @@ func TestApplicationLayer__TestGetById(t *testing.T) {
 func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 	cases := []struct {
 		Name             string
-		Input            command.CreateAccountCommand
+		Input            model.Profile
 		ExpectedResult   error
 		DoesExpectsError bool
-	}{}
+	}{
+		{
+			Name:             "Should 201 Created",
+			Input:            *model.NewProfile("avatarend", "url"),
+			ExpectedResult:   nil,
+			DoesExpectsError: false,
+		},
+		{
+			Name: "Should 409 Conflict",
+			Input: model.Profile{
+				Id:       id1,
+				Username: "NotImportant",
+			},
+			ExpectedResult:   coredomain.ApplicationError{Code: http.StatusConflict},
+			DoesExpectsError: true,
+		},
+	}
 
 	for _, tc := range cases {
 		t.Run(
@@ -225,12 +309,12 @@ func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 					if err == nil {
 						t.Fatalf("Error Expectations are Not Full-Filled")
 					}
-					if err.(*coredomain.ApplicationError).GetCode() != tc.ExpectedResult.(coredomain.IApplicationError).GetCode() {
+					if err.(coredomain.ApplicationError).GetCode() != tc.ExpectedResult.(coredomain.IApplicationError).GetCode() {
 						t.Fatalf("Error Expectations are Not Full-Filled\nExpected %v\nGot %v", tc.ExpectedResult, err)
 					}
 				}
 
-				if err == nil && (len(accountList) == countOfAccounts) {
+				if !tc.DoesExpectsError && (len(accountList) == countOfAccounts) {
 					t.Fatalf("Account Count not fullfills my precious expectations")
 				}
 			},
@@ -240,10 +324,23 @@ func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 func TestApplicationLayer__TestArchiveAccount(t *testing.T) {
 	cases := []struct {
 		Name             string
-		Input            command.ArchiveAccountCommand
+		Input            uuid.UUID
 		ExpectedResult   error
 		DoesExpectsError bool
-	}{}
+	}{
+		{
+			Name:             "Should OK",
+			Input:            id1,
+			ExpectedResult:   nil,
+			DoesExpectsError: false,
+		},
+		{
+			Name:             "Should Raise Error",
+			Input:            id2,
+			ExpectedResult:   coredomain.Conflict,
+			DoesExpectsError: true,
+		},
+	}
 
 	for _, tc := range cases {
 		t.Run(
@@ -260,8 +357,8 @@ func TestApplicationLayer__TestArchiveAccount(t *testing.T) {
 					}
 				}
 
-				if !accountList[tc.Input.Id].IsArchived {
-					t.Fatalf("Archive Command Not Archived the Given Object\n%v", accountList[tc.Input.Id])
+				if !tc.DoesExpectsError && !accountList[tc.Input].IsArchived {
+					t.Fatalf("Archive Command Not Archived the Given Object\n%v", accountList[tc.Input])
 				}
 			},
 		)

@@ -6,12 +6,11 @@ import (
 
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
-	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 type AccountGetAllQuery struct {
-	application.CommonQueryParameters
+	coredomain.CommonQueryParameters
 	repository.ProfileGetAllQueryFilter
 }
 
@@ -19,21 +18,21 @@ type WithParamFunc func(queryParams *AccountGetAllQuery) *AccountGetAllQuery
 
 func SetLimit(limit string) WithParamFunc {
 	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
-		application.SetLimit(limit)(&queryParams.CommonQueryParameters)
+		coredomain.SetLimit(limit)(&queryParams.CommonQueryParameters)
 		return queryParams
 	}
 }
 
 func SetPage(page string) WithParamFunc {
 	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
-		application.SetPage(page)(&queryParams.CommonQueryParameters)
+		coredomain.SetPage(page)(&queryParams.CommonQueryParameters)
 		return queryParams
 	}
 }
 
 func SetOrderBy(orderBy string) WithParamFunc {
 	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
-		application.SetOrder(orderBy)(&queryParams.CommonQueryParameters)
+		coredomain.SetOrder(orderBy)(&queryParams.CommonQueryParameters)
 		return queryParams
 	}
 }
@@ -46,7 +45,7 @@ func SetSortBy(sortBy string) WithParamFunc {
 		"id":         true,
 	}
 	return func(queryParams *AccountGetAllQuery) *AccountGetAllQuery {
-		application.SetSortBy(sortBy, whiteList)(&queryParams.CommonQueryParameters)
+		coredomain.SetSortBy(sortBy, whiteList)(&queryParams.CommonQueryParameters)
 		return queryParams
 	}
 }
@@ -68,7 +67,7 @@ func SetIsArchived(isArchived string) WithParamFunc {
 
 func DefaultAccountGetAllQuery() *AccountGetAllQuery {
 	return &AccountGetAllQuery{
-		CommonQueryParameters:    *application.NewCommonQueryParameters(),
+		CommonQueryParameters:    *coredomain.NewCommonQueryParameters(),
 		ProfileGetAllQueryFilter: *repository.DefaultAccountGetAllQueryFilter(),
 	}
 }

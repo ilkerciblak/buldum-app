@@ -4,21 +4,12 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/query"
+	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
-
-type AccountServiceInterface interface {
-	CreateAccount(createAccountCommand command.CreateAccountCommand, ctx context.Context) error
-	UpdateAccount(updateAccountCommand command.UpdateAccountCommand, ctx context.Context) error
-	ArchiveAccount(archiveAccountCommand command.ArchiveAccountCommand, ctx context.Context) error
-	GetAccountById(query query.AccountGetByIdQuery, ctx context.Context) (*model.Profile, error)
-	GetAllAccount(query query.AccountGetAllQuery, ctx context.Context) ([]*model.Profile, error)
-}
 
 type accountService struct {
 	AccountRepository repository.IAccountRepository
@@ -26,6 +17,7 @@ type accountService struct {
 }
 
 func AccountService(r repository.IAccountRepository, logger logging.ILogger) *accountService {
+	logger.With("Service", "Account-Service")
 	return &accountService{
 		AccountRepository: r,
 		Logger:            logger,
@@ -34,10 +26,7 @@ func AccountService(r repository.IAccountRepository, logger logging.ILogger) *ac
 
 // Implement the IAccountService interface methods below:
 
-func (s *accountService) CreateAccount(c command.CreateAccountCommand, ctx context.Context) error {
-	if _, err := c.Validate(); err != nil {
-		return err
-	}
+func (s *accountService) CreateAccount(c model.Profile, ctx context.Context) error {
 
 	// TODO: Check for conflicts
 	account := model.NewProfile(c.Username, c.AvatarUrl)
@@ -50,17 +39,14 @@ func (s *accountService) CreateAccount(c command.CreateAccountCommand, ctx conte
 
 }
 
-func (s *accountService) UpdateAccount(c command.UpdateAccountCommand, ctx context.Context) error {
-	if _, err := c.Validate(); err != nil {
-		return err.(coredomain.IApplicationError)
-	}
+func (s *accountService) UpdateAccount(p model.Profile, ctx context.Context) error {
 
-	user, err := s.AccountRepository.GetById(ctx, c.UserId)
+	user, err := s.AccountRepository.GetById(ctx, p.Id)
 	if err != nil {
 		return coredomain.BadRequest.WithMessage(err)
 	}
 
-	updated, err := user.UpdateProfile(model.UpdateUsername(c.Username), model.UpdateAvatarUrl(c.AvatarUrl))
+	updated, err := user.UpdateProfile(model.UpdateUsername(p.Username), model.UpdateAvatarUrl(p.AvatarUrl))
 	if err != nil {
 		return coredomain.BadRequest.WithMessage(err)
 	}
@@ -73,14 +59,18 @@ func (s *accountService) UpdateAccount(c command.UpdateAccountCommand, ctx conte
 
 }
 
-func (s *accountService) ArchiveAccount(c command.ArchiveAccountCommand, ctx context.Context) error {
-	data, err := s.AccountRepository.GetById(ctx, c.Id)
+func (s *accountService) ArchiveAccount(userId uuid.UUID, ctx context.Context) error {
+	data, err := s.AccountRepository.GetById(ctx, userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return coredomain.NotFound.WithMessage(err)
 		}
 
 		return coredomain.InternalServerError.WithMessage(err)
+	}
+	// Already Archived
+	if data.IsArchived {
+		return coredomain.Conflict.WithMessage("Account is already archived")
 	}
 
 	archived, err := data.UpdateProfile(model.ArchiveProfile)
@@ -96,8 +86,8 @@ func (s *accountService) ArchiveAccount(c command.ArchiveAccountCommand, ctx con
 	return nil
 }
 
-func (s *accountService) GetAccountById(query query.AccountGetByIdQuery, ctx context.Context) (*model.Profile, error) {
-	data, err := s.AccountRepository.GetById(ctx, query.Id)
+func (s *accountService) GetAccountById(userId uuid.UUID, ctx context.Context) (*model.Profile, error) {
+	data, err := s.AccountRepository.GetById(ctx, userId)
 	if err != nil {
 		return nil, err.(coredomain.IApplicationError)
 	}
@@ -105,8 +95,8 @@ func (s *accountService) GetAccountById(query query.AccountGetByIdQuery, ctx con
 	return data, nil
 }
 
-func (s *accountService) GetAllAccount(query query.AccountGetAllQuery, ctx context.Context) ([]*model.Profile, error) {
-	data, err := s.AccountRepository.GetAll(ctx, query.CommonQueryParameters, query.ProfileGetAllQueryFilter)
+func (s *accountService) GetAllAccount(query coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter, ctx context.Context) ([]*model.Profile, error) {
+	data, err := s.AccountRepository.GetAll(ctx, query, filter)
 
 	if err != nil {
 		return nil, coredomain.BadRequest.WithMessage(err.Error())

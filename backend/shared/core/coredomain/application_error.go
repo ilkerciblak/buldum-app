@@ -83,6 +83,11 @@ var (
 		Title: "Not Found",
 		Code:  http.StatusNotFound,
 	}
+
+	Conflict ApplicationError = ApplicationError{
+		Title: "409 Conflict",
+		Code:  http.StatusConflict,
+	}
 )
 
 func (a ApplicationError) WithMessage(msg any, args ...any) *ApplicationError {
