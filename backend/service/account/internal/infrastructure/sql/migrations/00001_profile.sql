@@ -22,3 +22,5 @@ CREATE TABLE IF NOT EXISTS account.profile(
 SELECT 'down SQL query';
 -- +goose StatementEnd
 DROP TABLE IF EXISTS account.profile;
+
+

@@ -3,14 +3,14 @@ package presentation
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/query"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
+	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type AccountGetByIdEndPoint struct {
-	Repository repository.IAccountRepository
+	Service application.AccountServiceInterface
 }
 
 func (a AccountGetByIdEndPoint) Path() string {
@@ -23,15 +23,20 @@ func (a AccountGetByIdEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 
 	id := r.PathValue("id")
 
-	query, err := query.NewAccountGetByIdQuery(id)
+	userId, err := uuid.Parse(id)
 	if err != nil {
-		return *corepresentation.NewErrorResult(coredomain.NotFound.WithMessage(err))
+		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
-	data, err2 := query.Handler(a.Repository, r.Context())
-	if err2 != nil {
-		return *corepresentation.NewErrorResult(err2)
+	data, err := a.Service.GetAccountById(userId, r.Context())
+	if err != nil {
+		if k, c := err.(coredomain.IApplicationError); c {
+			return *corepresentation.NewErrorResult(k)
+		}
+
+		return *corepresentation.NewErrorResult(coredomain.InternalServerError.WithMessage(err))
 	}
+
 	return corepresentation.ApiResult[any]{
 		Data:       data,
 		StatusCode: 200,

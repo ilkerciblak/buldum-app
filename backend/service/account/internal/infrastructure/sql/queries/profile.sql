@@ -36,3 +36,6 @@ SET
     updated_at=$3
 WHERE id=$4;
 
+-- name: CountMatchingProfiles :one
+SELECT COUNT(*) FROM account.profile
+WHERE user_name=$1;

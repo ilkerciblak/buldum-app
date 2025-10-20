@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
-	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
@@ -31,7 +30,7 @@ func (m *MockAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (
 
 	return model.NewProfile("ilkerciblak", "url"), nil
 }
-func (m *MockAccountRepository) GetAll(ctx context.Context, params application.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
+func (m *MockAccountRepository) GetAll(ctx context.Context, params coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
 
 	return []*model.Profile{
 		model.NewProfile("ilkerciblak", "url"),

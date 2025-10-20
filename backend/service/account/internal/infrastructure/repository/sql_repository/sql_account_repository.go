@@ -9,12 +9,12 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql/mapper"
-	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
 type SqlAccountRepository struct {
 	Db account_db.Queries
+	// Logger logging.ILogger
 }
 
 func NewSqlAccountRepository(db account_db.Queries) *SqlAccountRepository {
@@ -36,7 +36,7 @@ func (s SqlAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*m
 	return mapper.DBModelToDTO(data), nil
 }
 
-func (s SqlAccountRepository) GetAll(ctx context.Context, params application.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
+func (s SqlAccountRepository) GetAll(ctx context.Context, params coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
 
 	data, err := s.Db.GetAllProfile(ctx, account_db.GetAllProfileParams{
 		Column1:    params.Sort,
@@ -105,4 +105,13 @@ func (s SqlAccountRepository) Archive(ctx context.Context, userId uuid.UUID) err
 
 	}
 	return nil
+}
+
+func (s SqlAccountRepository) CountMatchingProfiles(ctx context.Context, username string) (int64, error) {
+	res, err := s.Db.CountMatchingProfiles(ctx, username)
+	if err != nil {
+		return 0, coredomain.InternalServerError
+	}
+
+	return res, nil
 }

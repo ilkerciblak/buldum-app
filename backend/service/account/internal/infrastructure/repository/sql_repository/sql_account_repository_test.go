@@ -14,7 +14,6 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
-	"github.com/ilkerciblak/buldum-app/shared/core/application"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
@@ -70,7 +69,7 @@ func TestSQLAccountRepository__GetAll(t *testing.T) {
 		Name            string
 		ExpectedRows    *sqlmock.Rows
 		ExpectedData    []*model.Profile
-		Params          *application.CommonQueryParameters
+		Params          *coredomain.CommonQueryParameters
 		Filter          *repository.ProfileGetAllQueryFilter
 		DoesExpectError bool
 		ExpectedError   coredomain.IApplicationError
@@ -87,13 +86,13 @@ func TestSQLAccountRepository__GetAll(t *testing.T) {
 				CreatedAt:  tt,
 				IsArchived: false,
 			}},
-			Params: &application.CommonQueryParameters{
-				Pagination: application.Pagination{
+			Params: &coredomain.CommonQueryParameters{
+				Pagination: coredomain.Pagination{
 					Page:   1,
 					Limit:  10,
 					Offset: 0,
 				},
-				Sorting: application.Sorting{
+				Sorting: coredomain.Sorting{
 					Sort:  "created_at",
 					Order: "asc",
 				},
