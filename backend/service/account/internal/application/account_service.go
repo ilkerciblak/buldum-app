@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
@@ -12,24 +13,28 @@ import (
 )
 
 type accountService struct {
-	AccountRepository repository.IAccountRepository
+	AccountRepository repository.AccountRepositoryInterface
 	Logger            logging.ILogger
 }
 
-func AccountService(r repository.IAccountRepository, logger logging.ILogger) *accountService {
+func AccountService(r repository.AccountRepositoryInterface, logger logging.ILogger) *accountService {
+
 	logger.With("Service", "Account-Service")
+
 	return &accountService{
 		AccountRepository: r,
 		Logger:            logger,
 	}
 }
 
-// Implement the IAccountService interface methods below:
+func (s *accountService) CreateAccount(dto dto.AccountCreateDTO, ctx context.Context) error {
+	if count, err := s.AccountRepository.CountMatchingProfiles(ctx, dto.Username); err != nil {
+		return err
+	} else if count != 0 {
+		return coredomain.Conflict.WithMessage("Username is already taken")
+	}
 
-func (s *accountService) CreateAccount(c model.Profile, ctx context.Context) error {
-
-	// TODO: Check for conflicts
-	account := model.NewProfile(c.Username, c.AvatarUrl)
+	account := model.NewProfile(dto.Username, dto.AvatarUrl)
 
 	if err := s.AccountRepository.Create(ctx, account); err != nil {
 		return coredomain.InternalServerError.WithMessage(err)
@@ -39,19 +44,19 @@ func (s *accountService) CreateAccount(c model.Profile, ctx context.Context) err
 
 }
 
-func (s *accountService) UpdateAccount(p model.Profile, ctx context.Context) error {
+func (s *accountService) UpdateAccount(userId uuid.UUID, dto dto.AccountUpdateDTO, ctx context.Context) error {
 
-	user, err := s.AccountRepository.GetById(ctx, p.Id)
+	user, err := s.AccountRepository.GetById(ctx, userId)
 	if err != nil {
 		return coredomain.BadRequest.WithMessage(err)
 	}
 
-	updated, err := user.UpdateProfile(model.UpdateUsername(p.Username), model.UpdateAvatarUrl(p.AvatarUrl))
+	updated, err := user.UpdateProfile(model.UpdateUsername(dto.Username), model.UpdateAvatarUrl(dto.AvatarUrl))
 	if err != nil {
 		return coredomain.BadRequest.WithMessage(err)
 	}
 
-	if err := s.AccountRepository.Update(ctx, updated.Id, updated); err != nil {
+	if err := s.AccountRepository.Update(ctx, userId, updated); err != nil {
 		return coredomain.InternalServerError.WithMessage(err)
 	}
 
@@ -68,7 +73,6 @@ func (s *accountService) ArchiveAccount(userId uuid.UUID, ctx context.Context) e
 
 		return coredomain.InternalServerError.WithMessage(err)
 	}
-	// Already Archived
 	if data.IsArchived {
 		return coredomain.Conflict.WithMessage("Account is already archived")
 	}
@@ -86,21 +90,21 @@ func (s *accountService) ArchiveAccount(userId uuid.UUID, ctx context.Context) e
 	return nil
 }
 
-func (s *accountService) GetAccountById(userId uuid.UUID, ctx context.Context) (*model.Profile, error) {
+func (s *accountService) GetAccountById(userId uuid.UUID, ctx context.Context) (*dto.AccountResultDTO, error) {
 	data, err := s.AccountRepository.GetById(ctx, userId)
 	if err != nil {
 		return nil, err.(coredomain.IApplicationError)
 	}
 
-	return data, nil
+	return dto.FromAccountModel(data), nil
 }
 
-func (s *accountService) GetAllAccount(query coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter, ctx context.Context) ([]*model.Profile, error) {
+func (s *accountService) GetAllAccount(query coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter, ctx context.Context) ([]*dto.AccountResultDTO, error) {
 	data, err := s.AccountRepository.GetAll(ctx, query, filter)
 
 	if err != nil {
 		return nil, coredomain.BadRequest.WithMessage(err.Error())
 	}
 
-	return data, nil
+	return dto.FromModelList(data), nil
 }

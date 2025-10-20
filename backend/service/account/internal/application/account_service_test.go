@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	a_application "github.com/ilkerciblak/buldum-app/service/account/internal/application"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
@@ -46,7 +47,7 @@ var accountList map[uuid.UUID]*model.Profile = map[uuid.UUID]*model.Profile{
 	},
 }
 
-var accountService domain.AccountServiceInterface = a_application.AccountService(
+var accountService application.AccountServiceInterface = a_application.AccountService(
 	MockAccountRepository{},
 	logging.NewSlogger(
 		logging.LoggerOptions{
@@ -99,6 +100,16 @@ func (m MockAccountRepository) Create(ctx context.Context, p *model.Profile) err
 	accountList[p.Id] = p
 
 	return nil
+}
+
+func (m MockAccountRepository) CountMatchingProfiles(ctx context.Context, username string) (int64, error) {
+	for _, acc := range accountList {
+		if strings.EqualFold(acc.Username, username) {
+			return 1, nil
+		}
+	}
+
+	return 0, nil
 }
 
 func (m MockAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error {
@@ -277,21 +288,23 @@ func TestApplicationLayer__TestGetById(t *testing.T) {
 func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 	cases := []struct {
 		Name             string
-		Input            model.Profile
+		Input            dto.AccountCreateDTO
 		ExpectedResult   error
 		DoesExpectsError bool
 	}{
 		{
-			Name:             "Should 201 Created",
-			Input:            *model.NewProfile("avatarend", "url"),
+			Name: "Should 201 Created",
+			Input: dto.AccountCreateDTO{
+				Username:  "avatareng",
+				AvatarUrl: "url",
+			},
 			ExpectedResult:   nil,
 			DoesExpectsError: false,
 		},
 		{
 			Name: "Should 409 Conflict",
-			Input: model.Profile{
-				Id:       id1,
-				Username: "NotImportant",
+			Input: dto.AccountCreateDTO{
+				Username: "ilkerciblak",
 			},
 			ExpectedResult:   coredomain.ApplicationError{Code: http.StatusConflict},
 			DoesExpectsError: true,
@@ -309,7 +322,7 @@ func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 					if err == nil {
 						t.Fatalf("Error Expectations are Not Full-Filled")
 					}
-					if err.(coredomain.ApplicationError).GetCode() != tc.ExpectedResult.(coredomain.IApplicationError).GetCode() {
+					if err.(*coredomain.ApplicationError).GetCode() != tc.ExpectedResult.(coredomain.IApplicationError).GetCode() {
 						t.Fatalf("Error Expectations are Not Full-Filled\nExpected %v\nGot %v", tc.ExpectedResult, err)
 					}
 				}

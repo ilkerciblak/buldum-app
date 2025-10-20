@@ -3,8 +3,8 @@ package presentation
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
@@ -12,8 +12,8 @@ import (
 )
 
 type CreateAccountEndPoint struct {
-	Repository repository.IAccountRepository
-	Logger     logging.ILogger
+	Service application.AccountServiceInterface
+	Logger  logging.ILogger
 }
 
 func (c CreateAccountEndPoint) Path() string {
@@ -25,15 +25,18 @@ func (c CreateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Requ
 	if r.Method != http.MethodPost {
 		return *corepresentation.NewErrorResult(coredomain.MethodNotAllowed)
 	}
-	var com command.CreateAccountCommand
-	err := jsonmapper.DecodeRequestBody(r, &com)
-	if err != nil {
 
+	var createDTO dto.AccountCreateDTO
+	err := jsonmapper.DecodeRequestBody(r, &createDTO)
+	if err != nil {
 		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
-	if err := com.Handler(c.Repository, r.Context()); err != nil {
-		c.Logger.With("params", com)
+	if err := createDTO.Validate(); err != nil {
+		return *corepresentation.NewErrorResult(err)
+	}
+
+	if err := c.Service.CreateAccount(createDTO, r.Context()); err != nil {
 		return *corepresentation.NewErrorResult(err)
 	}
 

@@ -3,8 +3,9 @@ package presentation
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/command"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
+	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/helper/jsonmapper"
@@ -12,31 +13,36 @@ import (
 )
 
 type UpdateAccountEndPoint struct {
-	Repository repository.IAccountRepository
-	Logger     logging.ILogger
+	Service application.AccountServiceInterface
+	Logger  logging.ILogger
 }
 
 func (e UpdateAccountEndPoint) Path() string {
 	return "PUT /accounts/{id}"
 }
+
 func (e UpdateAccountEndPoint) HandleRequest(w http.ResponseWriter, r *http.Request) corepresentation.ApiResult[any] {
 
 	if r.Method != http.MethodPut {
 		return *corepresentation.NewErrorResult(coredomain.MethodNotAllowed)
 	}
 
-	var cmd command.UpdateAccountCommand
+	var dto dto.AccountUpdateDTO
 
-	if err := jsonmapper.DecodeRequestBody(r, &cmd); err != nil {
+	if err := jsonmapper.DecodeRequestBody(r, &dto); err != nil {
 		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
-	if err := cmd.SetUserID(r.PathValue("id")); err != nil {
+	if err := dto.Validate(); err != nil {
+		return *corepresentation.NewErrorResult(err)
+	}
+
+	userId, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
 		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
 	}
 
-	if err := cmd.Handler(e.Repository, r.Context()); err != nil {
-		e.Logger.With("request-parameters", cmd)
+	if err := e.Service.UpdateAccount(userId, dto, r.Context()); err != nil {
 		return *corepresentation.NewErrorResult(err)
 	}
 

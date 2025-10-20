@@ -14,6 +14,7 @@ import (
 
 type SqlAccountRepository struct {
 	Db account_db.Queries
+	// Logger logging.ILogger
 }
 
 func NewSqlAccountRepository(db account_db.Queries) *SqlAccountRepository {
@@ -104,4 +105,13 @@ func (s SqlAccountRepository) Archive(ctx context.Context, userId uuid.UUID) err
 
 	}
 	return nil
+}
+
+func (s SqlAccountRepository) CountMatchingProfiles(ctx context.Context, username string) (int64, error) {
+	res, err := s.Db.CountMatchingProfiles(ctx, username)
+	if err != nil {
+		return 0, coredomain.InternalServerError
+	}
+
+	return res, nil
 }

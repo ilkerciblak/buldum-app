@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
-	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation/profile"
+	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/logging"
 	"github.com/ilkerciblak/buldum-app/shared/middleware"
@@ -17,24 +18,25 @@ func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger) *http.ServeMux
 	accountMux := http.NewServeMux()
 	accountQueries := account_db.New(db)
 	accountRepository := repo.NewSqlAccountRepository(*accountQueries)
+	accountService := application.AccountService(accountRepository, logger)
 
 	createAccountEndPoint := presentation.CreateAccountEndPoint{
-		Repository: accountRepository,
-		Logger:     logger,
+		Service: accountService,
+		Logger:  logger,
 	}
 	getAllAccountsEndPoint := presentation.GetAllProfilesEndPoint{
-		Repository: accountRepository,
+		Service: accountService,
 	}
 	getAccountByIdEndPoint := presentation.AccountGetByIdEndPoint{
-		Repository: accountRepository,
+		Service: accountService,
 	}
 	archiveAccountEndPoint := presentation.ArchiveAccountEndPoint{
-		Repository: accountRepository,
+		Service: accountService,
 	}
 
 	updateAccountEndPoint := presentation.UpdateAccountEndPoint{
-		Repository: accountRepository,
-		Logger:     logger,
+		Service: accountService,
+		Logger:  logger,
 	}
 
 	accountMux.HandleFunc(

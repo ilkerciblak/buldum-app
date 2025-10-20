@@ -3,14 +3,14 @@ package presentation
 import (
 	"net/http"
 
-	"github.com/ilkerciblak/buldum-app/service/account/internal/application/query"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 )
 
 type GetAllProfilesEndPoint struct {
-	Repository repository.IAccountRepository
+	Service application.AccountServiceInterface
 }
 
 func (e GetAllProfilesEndPoint) Path() string {
@@ -29,22 +29,18 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	isArchived := r.URL.Query().Get("is_archived")
 	username := r.URL.Query().Get("user_name")
 
-	q, err := query.NewAccountGetAllQuery(
-		query.SetPage(page),
-		query.SetOrderBy(orderBy),
-		query.SetLimit(limit),
-		query.SetSortBy(sortBy),
-		query.SetIsArchived(isArchived),
-		query.SetUsername(username),
-	)
+	queryDTO := dto.NewGetAllAccountDTO().
+		SetLimit(limit).
+		SetIsArchived(isArchived).
+		SetOrder(orderBy).
+		SetPage(page).
+		SetSortBy(sortBy).
+		SetUsername(username)
+
+	data, err := e.Service.GetAllAccount(queryDTO.CommonQueryParameters, queryDTO.ProfileGetAllQueryFilter, r.Context())
 
 	if err != nil {
-		return *corepresentation.NewErrorResult(coredomain.BadRequest.WithMessage(err))
-	}
-
-	data, handlerErr := q.Handler(e.Repository, r.Context())
-	if handlerErr != nil {
-		return *corepresentation.NewErrorResult(handlerErr)
+		return *corepresentation.NewErrorResult(err)
 	}
 
 	return corepresentation.ApiResult[any]{

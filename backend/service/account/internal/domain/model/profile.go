@@ -8,13 +8,13 @@ import (
 )
 
 type Profile struct {
-	Id         uuid.UUID `json:"id"`
-	Username   string    `json:"user_name"`
-	AvatarUrl  string    `json:"avatar_url"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	DeletedAt  time.Time `json:"deleted_at"`
-	IsArchived bool      `json:"is_archived"`
+	Id         uuid.UUID
+	Username   string
+	AvatarUrl  string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  time.Time
+	IsArchived bool
 }
 
 func NewProfile(username, avatarUrl string) *Profile {
