@@ -1,8 +1,8 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    schema: "service/account/internal/infrastructure/sql/migrations"
-    queries: "service/account/internal/infrastructure/sql/queries"
+    schema: "shared/core/infrastructure/sql/migrations/account"
+    queries: "shared/core/infrastructure/sql/queries/account"
     gen:
       go:
         package: "account_db"

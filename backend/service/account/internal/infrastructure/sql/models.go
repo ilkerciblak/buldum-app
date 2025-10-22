@@ -11,17 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type AccountNotificationSetting struct {
-	ID                    uuid.UUID
-	UserID                uuid.UUID
-	SendEmail             sql.NullBool
-	SendPushNotifications sql.NullBool
-	CreatedAt             sql.NullTime
-	UpdatedAt             sql.NullTime
-	DeletedAt             sql.NullTime
-	IsArchived            sql.NullBool
-}
-
 type AccountProfile struct {
 	ID         uuid.UUID
 	UserName   string
