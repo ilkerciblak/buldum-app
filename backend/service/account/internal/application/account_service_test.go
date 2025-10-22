@@ -175,7 +175,7 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 			Name: "Get All With Using Limiting Should 200 With Limited Values",
 			Query: func() coredomain.CommonQueryParameters {
 				q := *coredomain.DefaultCommonQueryParameters()
-				q.SetLimit("1")
+				q.SetPagination("1", "")
 				return q
 
 			}(),

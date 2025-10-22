@@ -34,8 +34,7 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	queryDTO.SetOrder(orderBy)
 	queryDTO.SetSortBy(sortBy)
 	queryDTO.SetUsername(username)
-	queryDTO.SetPage(page)
-	queryDTO.SetLimit(limit)
+	queryDTO.SetPagination(limit, page)
 
 	data, err := e.Service.GetAllAccount(queryDTO.CommonQueryParameters, queryDTO.ProfileGetAllQueryFilter, r.Context())
 

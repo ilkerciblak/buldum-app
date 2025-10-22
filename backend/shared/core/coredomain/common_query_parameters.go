@@ -20,7 +20,7 @@ type Sorting struct {
 	Order string
 }
 
-func (p *CommonQueryParameters) SetPage(page string) {
+func (p *CommonQueryParameters) setpage(page string) {
 	if parsed, err := strconv.Atoi(page); err == nil {
 		p.Page = parsed
 	}
@@ -28,14 +28,22 @@ func (p *CommonQueryParameters) SetPage(page string) {
 	// //return p
 }
 
-func (p *CommonQueryParameters) SetLimit(limit string) {
+func (p *CommonQueryParameters) setlimit(limit string) {
 	if parsed, err := strconv.Atoi(limit); err == nil {
 		p.Limit = parsed
 	}
+
+	//return p
+}
+
+func (p *CommonQueryParameters) SetPagination(limit string, page string) {
+
+	p.setlimit(limit)
+	p.setpage(page)
+
 	if p.Page > 1 {
 		p.Offset = p.Limit * (p.Page - 1)
 	}
-	//return p
 }
 
 func (p *CommonQueryParameters) SetSortBy(sortBy string, sortingWhiteList map[string]bool) {
