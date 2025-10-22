@@ -10,50 +10,42 @@ type CommonQueryParameters struct {
 }
 
 type Pagination struct {
-	Page   int `query:"page"`
-	Limit  int `query:"limit"`
-	Offset int `query:"offset"`
+	Page   int
+	Limit  int
+	Offset int
 }
 
 type Sorting struct {
-	Sort  string `query:"sort"`
-	Order string `query:"order"`
+	Sort  string
+	Order string
 }
 
-type WithParamFunc func(commonQueryParameters *CommonQueryParameters) *CommonQueryParameters
-
-func SetPage(page string) WithParamFunc {
-	return func(commonQueryParameters *CommonQueryParameters) *CommonQueryParameters {
-		if parsed, err := strconv.Atoi(page); err == nil {
-			commonQueryParameters.Page = parsed
-		}
-
-		return commonQueryParameters
+func (p *CommonQueryParameters) SetPage(page string) {
+	if parsed, err := strconv.Atoi(page); err == nil {
+		p.Page = parsed
 	}
+
+	// //return p
 }
 
-func SetLimit(limit string) WithParamFunc {
-	return func(commonQueryParameters *CommonQueryParameters) *CommonQueryParameters {
-		if parsed, err := strconv.Atoi(limit); err == nil {
-			commonQueryParameters.Limit = parsed
-		}
-		if commonQueryParameters.Page > 1 {
-			commonQueryParameters.Offset = commonQueryParameters.Limit * (commonQueryParameters.Page - 1)
-		}
-		return commonQueryParameters
+func (p *CommonQueryParameters) SetLimit(limit string) {
+	if parsed, err := strconv.Atoi(limit); err == nil {
+		p.Limit = parsed
 	}
-}
-
-func SetSortBy(sortBy string, sortingWhiteList map[string]bool) WithParamFunc {
-	return func(commonQueryParameters *CommonQueryParameters) *CommonQueryParameters {
-		if len(sortingWhiteList) == 0 || sortingWhiteList[sortBy] {
-			commonQueryParameters.Sort = sortBy
-		}
-		return commonQueryParameters
+	if p.Page > 1 {
+		p.Offset = p.Limit * (p.Page - 1)
 	}
+	//return p
 }
 
-func SetOrder(orderBy string) WithParamFunc {
+func (p *CommonQueryParameters) SetSortBy(sortBy string, sortingWhiteList map[string]bool) {
+	if sortingWhiteList[sortBy] {
+		p.Sort = sortBy
+	}
+	//return p
+}
+
+func (p *CommonQueryParameters) SetOrder(orderBy string) {
 
 	orderWhiteList := map[string]bool{
 		"asc":  true,
@@ -62,38 +54,23 @@ func SetOrder(orderBy string) WithParamFunc {
 		"DESC": true,
 	}
 
-	return func(commonQueryParameters *CommonQueryParameters) *CommonQueryParameters {
-		if orderWhiteList[orderBy] {
-			commonQueryParameters.Order = orderBy
-		}
-		return commonQueryParameters
+	if orderWhiteList[orderBy] {
+		p.Order = orderBy
 	}
+	//return p
 }
 
-func NewCommonQueryParameters(setters ...WithParamFunc) *CommonQueryParameters {
-	pagination, sorting := defaultCommonQueryParameters()
-
-	c := &CommonQueryParameters{
-		Pagination: *pagination,
-		Sorting:    *sorting,
-	}
-
-	for _, setter := range setters {
-		setter(c)
-	}
-
-	return c
-}
-
-func defaultCommonQueryParameters() (*Pagination, *Sorting) {
-	return &Pagination{
+func DefaultCommonQueryParameters() *CommonQueryParameters {
+	return &CommonQueryParameters{
+		Pagination: Pagination{
 			Page:   1,
 			Limit:  30,
 			Offset: 0,
 		},
-		&Sorting{
+		Sorting: Sorting{
 			Sort:  "created_at",
 			Order: "asc",
-		}
+		},
+	}
 
 }

@@ -160,7 +160,7 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 	}{
 		{
 			Name:   "Get All With No Query should Return 200 With All Values",
-			Query:  *coredomain.NewCommonQueryParameters(),
+			Query:  *coredomain.DefaultCommonQueryParameters(),
 			Filter: *repository.DefaultAccountGetAllQueryFilter(),
 			ExpectedResult: struct {
 				dataLength int
@@ -172,8 +172,13 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 			DoesExpectsError: false,
 		},
 		{
-			Name:   "Get All With Using Limiting Should 200 With Limited Values",
-			Query:  *coredomain.NewCommonQueryParameters(coredomain.SetLimit("1")),
+			Name: "Get All With Using Limiting Should 200 With Limited Values",
+			Query: func() coredomain.CommonQueryParameters {
+				q := *coredomain.DefaultCommonQueryParameters()
+				q.SetLimit("1")
+				return q
+
+			}(),
 			Filter: *repository.DefaultAccountGetAllQueryFilter(),
 			ExpectedResult: struct {
 				dataLength int
@@ -186,7 +191,7 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 		},
 		{
 			Name:  "Get All With Using Filtering Should 200 OK with Some Values",
-			Query: *coredomain.NewCommonQueryParameters(),
+			Query: *coredomain.DefaultCommonQueryParameters(),
 			Filter: repository.ProfileGetAllQueryFilter{
 				Username: "ilker",
 			},

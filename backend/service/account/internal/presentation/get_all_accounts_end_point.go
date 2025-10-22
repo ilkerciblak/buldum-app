@@ -29,13 +29,13 @@ func (e GetAllProfilesEndPoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	isArchived := r.URL.Query().Get("is_archived")
 	username := r.URL.Query().Get("user_name")
 
-	queryDTO := dto.NewGetAllAccountDTO().
-		SetLimit(limit).
-		SetIsArchived(isArchived).
-		SetOrder(orderBy).
-		SetPage(page).
-		SetSortBy(sortBy).
-		SetUsername(username)
+	queryDTO := dto.NewGetAllAccountDTO()
+	queryDTO.SetIsArchived(isArchived)
+	queryDTO.SetOrder(orderBy)
+	queryDTO.SetSortBy(sortBy)
+	queryDTO.SetUsername(username)
+	queryDTO.SetPage(page)
+	queryDTO.SetLimit(limit)
 
 	data, err := e.Service.GetAllAccount(queryDTO.CommonQueryParameters, queryDTO.ProfileGetAllQueryFilter, r.Context())
 
