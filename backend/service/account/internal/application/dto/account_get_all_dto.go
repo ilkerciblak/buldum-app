@@ -8,10 +8,6 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
-type QueryInterface[T any] interface {
-	SetSortBy() *T
-}
-
 type GetAllAccountDTO struct {
 	coredomain.CommonQueryParameters
 	repository.ProfileGetAllQueryFilter

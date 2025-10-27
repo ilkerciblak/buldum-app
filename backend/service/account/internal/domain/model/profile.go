@@ -27,16 +27,16 @@ func NewProfile(username, avatarUrl string) *Profile {
 	}
 }
 
-type WithUpdateFunc func(p *Profile) error
+type withUpdateFunc func(p *Profile) error
 
-func UpdateUsername(val string) WithUpdateFunc {
+func UpdateUsername(val string) withUpdateFunc {
 	return func(p *Profile) error {
 		p.Username = val
 		return nil
 	}
 }
 
-func UpdateAvatarUrl(val string) WithUpdateFunc {
+func UpdateAvatarUrl(val string) withUpdateFunc {
 	return func(p *Profile) error {
 		p.AvatarUrl = val
 		return nil
@@ -51,7 +51,7 @@ func ArchiveProfile(p *Profile) error {
 	return nil
 }
 
-func (p *Profile) UpdateProfile(fs ...WithUpdateFunc) (*Profile, error) {
+func (p *Profile) UpdateProfile(fs ...withUpdateFunc) (*Profile, error) {
 	for _, f := range fs {
 		err := f(p)
 		if err != nil {

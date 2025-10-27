@@ -1,40 +1,78 @@
 package model
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
-type ContactInformation struct {
-	UserID    uuid.UUID
-	Type      ContactInformationType
-	Publicity bool
-}
-
-func NewContactInformation(userid uuid.UUID, ty ContactInformationType, public bool) *ContactInformation {
-	return &ContactInformation{
-		UserID:    userid,
-		Type:      ty,
-		Publicity: public,
-	}
-}
-
-type ContactInformationType string
+type ContactInformationType int
 
 const (
-	PhoneNumber ContactInformationType = "PhoneNumber"
-	Email       ContactInformationType = "Email"
+	Email ContactInformationType = iota
+	PhoneNumber
 )
 
-func (c *ContactInformationType) Validate() (*ContactInformationType, error) {
-	switch *c {
-	case Email:
-		fallthrough
-	case PhoneNumber:
-		return c, nil
-	default:
-		return nil, coredomain.RequestValidationError.WithMessage(fmt.Sprintf("Invalid Contact Information Type %v", c))
+var (
+	typeNames = map[ContactInformationType]string{
+		Email:       "Email",
+		PhoneNumber: "PhoneNumber",
 	}
+)
+
+func (t ContactInformationType) String() string {
+	val, exists := typeNames[t]
+	if !exists {
+		return "Undefined ContactInformationType"
+	}
+
+	return val
+}
+
+type ContactInformation struct {
+	Id          uuid.UUID
+	UserID      uuid.UUID
+	Type        ContactInformationType
+	Publicity   bool
+	ContactInfo string
+	IsArchived  bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
+}
+
+func NewContactInformation(userId uuid.UUID, infoType ContactInformationType, publicity bool, contactInfo string) *ContactInformation {
+	return &ContactInformation{
+		Id:          uuid.New(),
+		UserID:      userId,
+		Type:        infoType,
+		Publicity:   publicity,
+		ContactInfo: contactInfo,
+		CreatedAt:   time.Now(),
+		IsArchived:  false,
+	}
+}
+
+func (c *ContactInformation) SetContactInfo(i string) error {
+	// TODO: Validation for each type
+	c.ContactInfo = i
+	return nil
+}
+
+func (c *ContactInformation) SetPublicity(p bool) {
+	c.Publicity = p
+}
+
+func (c *ContactInformation) Archive() {
+	c.IsArchived = true
+}
+
+func (c *ContactInformation) BeforeUpdate() error {
+	if c.IsArchived {
+		return coredomain.Conflict.WithMessage("Instance is archived")
+	}
+
+	c.UpdatedAt = time.Now()
+	return nil
 }

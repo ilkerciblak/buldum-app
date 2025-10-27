@@ -63,6 +63,10 @@ var (
 		Title: "User Not Authenticated",
 		Code:  http.StatusUnauthorized,
 	}
+	NotAuthorized ApplicationError = ApplicationError{
+		Title: "User Not Authorized",
+		Code:  http.StatusUnauthorized,
+	}
 
 	UserForbidden ApplicationError = ApplicationError{
 		Title: "Authorization Error",
