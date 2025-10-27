@@ -13,7 +13,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/shared/middleware"
 )
 
-func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger) *http.ServeMux {
+func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger, authMiddleware middleware.IMiddleware) *http.ServeMux {
 
 	accountMux := http.NewServeMux()
 	accountQueries := account_db.New(db)
@@ -51,6 +51,7 @@ func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger) *http.ServeMux
 
 		middleware.ChainMiddlewareWithEndPoint(
 			corepresentation.GenerateHandlerFuncFromEndPoint(getAccountByIdEndPoint, logger),
+			authMiddleware,
 		),
 	)
 

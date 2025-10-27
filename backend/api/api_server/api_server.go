@@ -13,6 +13,7 @@ import (
 
 	appconfig "github.com/ilkerciblak/buldum-app/api/config"
 	api_middlewares "github.com/ilkerciblak/buldum-app/api/middleware"
+	"github.com/ilkerciblak/buldum-app/shared/authentication"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	presentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
 	"github.com/ilkerciblak/buldum-app/shared/logging"
@@ -23,6 +24,7 @@ import (
 type ApiServer struct {
 	ServerAddr   string
 	DbConnection *sql.DB
+	secureKey    string
 	*http.ServeMux
 	*http.Server
 }
@@ -31,6 +33,7 @@ func NewApiServer(cfg *appconfig.AppConfig, conn *sql.DB) *ApiServer {
 	return &ApiServer{
 		ServerAddr:   fmt.Sprintf(":%v", cfg.PORT),
 		DbConnection: conn,
+		secureKey:    cfg.SecureKey,
 	}
 }
 
@@ -56,7 +59,7 @@ func (a *ApiServer) GracefullShutdown(ctx context.Context, errorChan <-chan erro
 
 }
 
-func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB, logger logging.ILogger) *http.ServeMux) {
+func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB, logger logging.ILogger, authMiddleware middleware.IMiddleware) *http.ServeMux) {
 
 	a.ServeMux = http.NewServeMux()
 	logger := logging.NewSlogger(logging.LoggerOptions{
@@ -68,10 +71,15 @@ func (a *ApiServer) ConfigureHTTPServer(domainRegisterars ...func(db *sql.DB, lo
 		ILogger: logger,
 	}
 
+	authMiddleware := api_middlewares.AuthenticationMiddleware{
+		ILogger:   logger,
+		JWTHelper: *authentication.NewJWTMaker(a.secureKey),
+	}
+
 	apiHandler := middleware.CreateMiddlewareChain(&loggingMiddleware, api_middlewares.PanicRecoverMiddleware{})
 
 	for _, f := range domainRegisterars {
-		a.ServeMux.Handle("/api/", apiHandler(http.StripPrefix("/api", f(a.DbConnection, logger))))
+		a.ServeMux.Handle("/api/", apiHandler(http.StripPrefix("/api", f(a.DbConnection, logger, &authMiddleware))))
 	}
 
 	a.Server = &http.Server{

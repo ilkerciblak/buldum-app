@@ -9,6 +9,7 @@ type AppConfig struct {
 	PORT      string
 	DB_URL    string
 	DB_DRIVER string
+	SecureKey string
 }
 
 func NewAppConfig() (*AppConfig, error) {
@@ -19,11 +20,12 @@ func NewAppConfig() (*AppConfig, error) {
 	port := envreader.GetStringOrDefault("APP_PORT", "8000")
 	db_url := envreader.GetStringOrDefault("CONN_STR", "")
 	driver := envreader.GetStringOrDefault("DB_DRIVER", "postgres")
-
+	secureKey := envreader.GetStringOrDefault("SECURE_KEY", "")
 	return &AppConfig{
 			PORT:      port,
 			DB_URL:    db_url,
 			DB_DRIVER: driver,
+			SecureKey: secureKey,
 		},
 		nil
 }
