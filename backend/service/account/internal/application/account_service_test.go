@@ -3,52 +3,20 @@ package application_test
 import (
 	"context"
 	"net/http"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	a_application "github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/application/dto"
-	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/mock"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 	"github.com/ilkerciblak/buldum-app/shared/logging"
 )
 
-var now time.Time = time.Now()
-
-var id1 uuid.UUID = uuid.MustParse("370907d3-698d-40af-a1ce-c23ce40735c5")
-var id2 uuid.UUID = uuid.MustParse("2677a213-a037-409c-8f7b-21810eefe5de")
-var id3 uuid.UUID = uuid.MustParse("a5527cd3-2418-4415-912d-365e86048338")
-
-var accountList map[uuid.UUID]*model.Profile = map[uuid.UUID]*model.Profile{
-	id1: {
-		Id:         id1,
-		Username:   "ilkerciblak",
-		AvatarUrl:  "url",
-		CreatedAt:  now,
-		IsArchived: false,
-	},
-	id2: {
-		Id:         id2,
-		Username:   "turkantugcetufan",
-		AvatarUrl:  "url",
-		CreatedAt:  now.Add(2 * time.Second),
-		IsArchived: true,
-	},
-	id3: {
-		Id:         id3,
-		Username:   "luffy-chan",
-		AvatarUrl:  "url",
-		CreatedAt:  now.Add(3 * time.Second),
-		IsArchived: false,
-	},
-}
-
 var accountService application.AccountServiceInterface = a_application.AccountService(
-	MockAccountRepository{},
+	mock.MockAccountRepository{},
 	logging.NewSlogger(
 		logging.LoggerOptions{
 			MinLevel:    logging.DEBUG,
@@ -57,92 +25,6 @@ var accountService application.AccountServiceInterface = a_application.AccountSe
 		},
 	),
 )
-
-type MockAccountRepository struct {
-}
-
-func (m MockAccountRepository) GetById(ctx context.Context, userId uuid.UUID) (*model.Profile, error) {
-
-	model, exists := accountList[userId]
-	if !exists {
-		return nil, coredomain.NotFound
-	}
-
-	return model, nil
-
-}
-func (m MockAccountRepository) GetAll(ctx context.Context, params coredomain.CommonQueryParameters, filter repository.ProfileGetAllQueryFilter) ([]*model.Profile, error) {
-	res := []*model.Profile{}
-	for _, account := range accountList {
-
-		if (filter.IsArchived == false || filter.IsArchived == account.IsArchived) &&
-			(filter.Username == "" || strings.Contains(account.Username, filter.Username)) &&
-			params.Limit > len(res) {
-			res = append(res, account)
-		}
-	}
-
-	return res, nil
-}
-func (m MockAccountRepository) Create(ctx context.Context, p *model.Profile) error {
-	if p.Username == "" || p.Id == uuid.Max {
-
-		return coredomain.BadRequest
-	}
-
-	if _, exists := accountList[p.Id]; exists {
-		return coredomain.ApplicationError{
-			Code:    http.StatusConflict,
-			Message: "Account With Id Already Registered",
-		}
-	}
-
-	accountList[p.Id] = p
-
-	return nil
-}
-
-func (m MockAccountRepository) CountMatchingProfiles(ctx context.Context, username string) (int64, error) {
-	for _, acc := range accountList {
-		if strings.EqualFold(acc.Username, username) {
-			return 1, nil
-		}
-	}
-
-	return 0, nil
-}
-
-func (m MockAccountRepository) Update(ctx context.Context, userId uuid.UUID, p *model.Profile) error {
-
-	if _, exists := accountList[userId]; exists {
-		accountList[userId] = p
-	}
-
-	return coredomain.NotFound
-}
-func (m MockAccountRepository) Delete(ctx context.Context, userId uuid.UUID) error {
-
-	if acc, exists := accountList[userId]; exists {
-		updated, err := acc.UpdateProfile(model.ArchiveProfile)
-		if err != nil {
-			return err
-		}
-		accountList[userId] = updated
-	}
-
-	return coredomain.NotFound
-}
-func (m MockAccountRepository) Archive(ctx context.Context, userId uuid.UUID) error {
-	if acc, exists := accountList[userId]; exists {
-		updated, err := acc.UpdateProfile(model.ArchiveProfile)
-		if err != nil {
-			return err
-		}
-		accountList[userId] = updated
-	}
-
-	return coredomain.NotFound
-}
 
 func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 
@@ -166,7 +48,7 @@ func TestApplicationLayer__TestGetAllAccount(t *testing.T) {
 				dataLength int
 				err        error
 			}{
-				dataLength: len(accountList),
+				dataLength: len(mock.AccountList),
 				err:        nil,
 			},
 			DoesExpectsError: false,
@@ -243,12 +125,12 @@ func TestApplicationLayer__TestGetById(t *testing.T) {
 	}{
 		{
 			Name:  "Should 200 OK With Related Value",
-			Input: id1,
+			Input: mock.Id1,
 			ExpectedResult: struct {
 				ResultId uuid.UUID
 				err      error
 			}{
-				id1,
+				mock.Id1,
 				nil,
 			},
 			DoesExpectsError: false,
@@ -320,7 +202,7 @@ func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 		t.Run(
 			tc.Name,
 			func(t *testing.T) {
-				countOfAccounts := len(accountList)
+				countOfAccounts := len(mock.AccountList)
 				err := accountService.CreateAccount(tc.Input, context.Background())
 
 				if tc.DoesExpectsError {
@@ -332,7 +214,7 @@ func TestApplicationLayer__TestCreateAccount(t *testing.T) {
 					}
 				}
 
-				if !tc.DoesExpectsError && (len(accountList) == countOfAccounts) {
+				if !tc.DoesExpectsError && (len(mock.AccountList) == countOfAccounts) {
 					t.Fatalf("Account Count not fullfills my precious expectations")
 				}
 			},
@@ -348,13 +230,13 @@ func TestApplicationLayer__TestArchiveAccount(t *testing.T) {
 	}{
 		{
 			Name:             "Should OK",
-			Input:            id1,
+			Input:            mock.Id1,
 			ExpectedResult:   nil,
 			DoesExpectsError: false,
 		},
 		{
 			Name:             "Should Raise Error",
-			Input:            id2,
+			Input:            mock.Id2,
 			ExpectedResult:   coredomain.Conflict,
 			DoesExpectsError: true,
 		},
@@ -375,8 +257,8 @@ func TestApplicationLayer__TestArchiveAccount(t *testing.T) {
 					}
 				}
 
-				if !tc.DoesExpectsError && !accountList[tc.Input].IsArchived {
-					t.Fatalf("Archive Command Not Archived the Given Object\n%v", accountList[tc.Input])
+				if !tc.DoesExpectsError && !mock.AccountList[tc.Input].IsArchived {
+					t.Fatalf("Archive Command Not Archived the Given Object\n%v", mock.AccountList[tc.Input])
 				}
 			},
 		)

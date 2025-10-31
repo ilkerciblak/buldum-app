@@ -6,6 +6,7 @@ import (
 
 	"github.com/ilkerciblak/buldum-app/service/account/internal/application"
 	repo "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
+	sqlrepository "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/repository/sql_repository"
 	account_db "github.com/ilkerciblak/buldum-app/service/account/internal/infrastructure/sql"
 	presentation "github.com/ilkerciblak/buldum-app/service/account/internal/presentation"
 	corepresentation "github.com/ilkerciblak/buldum-app/shared/core/presentation"
@@ -74,6 +75,71 @@ func RegisterAccountDomainAPI(db *sql.DB, logger logging.ILogger, authMiddleware
 			corepresentation.GenerateHandlerFuncFromEndPoint(updateAccountEndPoint, logger),
 		),
 	)
+
+	contactInformationRepository := sqlrepository.NewSqlContactInformationRepository(*accountQueries)
+	contactInformationService := application.NewContactInformationService(
+		contactInformationRepository,
+		accountRepository,
+		logger,
+	)
+
+	// Contact Information Things
+	createContactInformationEP := presentation.NewContactInformationCreateEndPoint(contactInformationService)
+	updateContactInformationEP := presentation.NewContactInformationUpdateEndPoint(contactInformationService)
+	archiveContactInformationEP := presentation.NewContactInformationArchiveEndPoint(contactInformationService)
+	getAllContactInformationByUserEP := presentation.NewContactInformationGetAllByUserEndPoint(contactInformationService)
+	getAllContactInformationEP := presentation.NewContactInformationGetAllEndPoint(contactInformationService)
+	// Register Endpoints to Mux
+	accountMux.HandleFunc(
+		createContactInformationEP.Path(),
+		middleware.ChainMiddlewareWithEndPoint(
+			corepresentation.GenerateHandlerFuncFromEndPoint(
+				createContactInformationEP,
+				logger,
+			),
+		),
+	)
+
+	accountMux.HandleFunc(
+		updateContactInformationEP.Path(),
+		middleware.ChainMiddlewareWithEndPoint(
+			corepresentation.GenerateHandlerFuncFromEndPoint(
+				updateContactInformationEP,
+				logger,
+			),
+		),
+	)
+
+	accountMux.HandleFunc(
+		archiveContactInformationEP.Path(),
+		middleware.ChainMiddlewareWithEndPoint(
+			corepresentation.GenerateHandlerFuncFromEndPoint(
+				archiveContactInformationEP,
+				logger,
+			),
+		),
+	)
+
+	accountMux.HandleFunc(
+		getAllContactInformationByUserEP.Path(),
+		middleware.ChainMiddlewareWithEndPoint(
+			corepresentation.GenerateHandlerFuncFromEndPoint(
+				getAllContactInformationByUserEP,
+				logger,
+			),
+		),
+	)
+
+	accountMux.HandleFunc(
+		getAllContactInformationEP.Path(),
+		middleware.ChainMiddlewareWithEndPoint(
+			corepresentation.GenerateHandlerFuncFromEndPoint(
+				getAllContactInformationEP,
+				logger,
+			),
+		),
+	)
+
 	return accountMux
 
 }

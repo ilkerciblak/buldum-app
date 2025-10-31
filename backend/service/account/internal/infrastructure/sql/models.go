@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type AccountContactInformation struct {
+	ID                     uuid.UUID
+	ProfileID              uuid.NullUUID
+	ContactInformationType sql.NullString
+	IsPublic               sql.NullBool
+	ContactInformation     sql.NullString
+	CreatedAt              sql.NullTime
+	UpdatedAt              sql.NullTime
+	DeletedAt              sql.NullTime
+	IsArchived             sql.NullBool
+}
+
 type AccountProfile struct {
 	ID         uuid.UUID
 	UserName   string

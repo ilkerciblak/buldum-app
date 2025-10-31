@@ -39,3 +39,4 @@ WHERE id=$4;
 -- name: CountMatchingProfiles :one
 SELECT COUNT(*) FROM account.profile
 WHERE user_name=$1;
+

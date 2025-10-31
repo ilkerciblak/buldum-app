@@ -28,8 +28,7 @@ func (m *AuthenticationMiddleware) Act(handlerFunc http.HandlerFunc) http.Handle
 			corepresentation.RespondWithProblemDetails(w, corepresentation.NewErrorResult(err).Error)
 			return
 		}
-		type authKey struct{}
-		ctx := context.WithValue(r.Context(), authKey{}, claims)
+		ctx := context.WithValue(r.Context(), auth.AuthKey{}, claims)
 		handlerFunc.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

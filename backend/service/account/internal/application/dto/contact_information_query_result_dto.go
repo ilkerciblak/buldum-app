@@ -5,7 +5,7 @@ import (
 	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/model"
 )
 
-type ContactInformationGetAllByAccountResultDTO struct {
+type ContactInformationGetAllResultDTO struct {
 	ID         uuid.UUID
 	AccountId  uuid.UUID
 	Type       string
@@ -13,9 +13,9 @@ type ContactInformationGetAllByAccountResultDTO struct {
 	IsArchived bool
 }
 
-func FromModel(m *model.ContactInformation) *ContactInformationGetAllByAccountResultDTO {
+func FromModel(m *model.ContactInformation) *ContactInformationGetAllResultDTO {
 
-	return &ContactInformationGetAllByAccountResultDTO{
+	return &ContactInformationGetAllResultDTO{
 		ID:         m.Id,
 		AccountId:  m.UserID,
 		Type:       m.Type.String(),
@@ -24,8 +24,8 @@ func FromModel(m *model.ContactInformation) *ContactInformationGetAllByAccountRe
 	}
 }
 
-func FromModelListToList(m []*model.ContactInformation) []*ContactInformationGetAllByAccountResultDTO {
-	res := make([]*ContactInformationGetAllByAccountResultDTO, len(m))
+func FromModelListToList(m []*model.ContactInformation) []*ContactInformationGetAllResultDTO {
+	res := make([]*ContactInformationGetAllResultDTO, len(m))
 
 	for i, m := range m {
 		res[i] = FromModel(m)

@@ -19,15 +19,25 @@ var (
 		Email:       "Email",
 		PhoneNumber: "PhoneNumber",
 	}
+
+	fromString = map[string]ContactInformationType{
+		"Email":       Email,
+		"Phone":       PhoneNumber,
+		"PhoneNumber": PhoneNumber,
+	}
 )
 
 func (t ContactInformationType) String() string {
 	val, exists := typeNames[t]
 	if !exists {
-		return "Undefined ContactInformationType"
+		return "Undefined"
 	}
 
 	return val
+}
+
+func ContactInformationTypeFromString(s string) ContactInformationType {
+	return fromString[s]
 }
 
 type ContactInformation struct {

@@ -14,3 +14,7 @@ func (c ContactInformationUpdateDTO) Validate() error {
 	//TODO:ContactInformationUpdateRequestValidation
 	return nil
 }
+
+func (c *ContactInformationUpdateDTO) SetAccountID(id uuid.UUID) {
+	c.AccountID = id
+}

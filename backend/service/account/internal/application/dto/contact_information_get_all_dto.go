@@ -3,25 +3,23 @@ package dto
 import (
 	"strconv"
 
-	"github.com/google/uuid"
+	"github.com/ilkerciblak/buldum-app/service/account/internal/domain/repository"
 	"github.com/ilkerciblak/buldum-app/shared/core/coredomain"
 )
 
-type ContactInformationGetAllByAccountDTO struct {
-	AccountID  uuid.UUID
-	IsArchived bool
+type ContactInformationGetAllDTO struct {
+	repository.ContactInformationQueryFilter
 	coredomain.CommonQueryParameters
 }
 
-func NewContactInformationGetAllByAccountDTO(accountId uuid.UUID) *ContactInformationGetAllByAccountDTO {
-	return &ContactInformationGetAllByAccountDTO{
-		AccountID:             accountId,
-		IsArchived:            false,
-		CommonQueryParameters: *coredomain.DefaultCommonQueryParameters(),
+func NewContactInformationGetAllByAccountDTO() *ContactInformationGetAllDTO {
+	return &ContactInformationGetAllDTO{
+		ContactInformationQueryFilter: *repository.DefaultContactInformationQueryFilter(),
+		CommonQueryParameters:         *coredomain.DefaultCommonQueryParameters(),
 	}
 }
 
-func (d *ContactInformationGetAllByAccountDTO) SetSort(sort string) {
+func (d *ContactInformationGetAllDTO) SetSort(sort string) {
 	whiteList := map[string]bool{
 		"created_at": true,
 		"updated_at": true,
@@ -32,9 +30,16 @@ func (d *ContactInformationGetAllByAccountDTO) SetSort(sort string) {
 
 }
 
-func (d *ContactInformationGetAllByAccountDTO) SetIsArchived(isArchived string) *ContactInformationGetAllByAccountDTO {
+func (d *ContactInformationGetAllDTO) SetIsArchived(isArchived string) *ContactInformationGetAllDTO {
 	if parsed, err := strconv.ParseBool(isArchived); err == nil {
 		d.IsArchived = parsed
+	}
+
+	return d
+}
+func (d *ContactInformationGetAllDTO) SetIsPublic(isPublic string) *ContactInformationGetAllDTO {
+	if parsed, err := strconv.ParseBool(isPublic); err == nil {
+		d.Publicity = parsed
 	}
 
 	return d
